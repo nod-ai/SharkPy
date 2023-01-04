@@ -2,6 +2,7 @@
 import ast
 from enum import Enum
 
+import pyccolo
 from pyccolo import fast
 
 
@@ -164,3 +165,6 @@ AST_TO_EVENT_MAPPING = {
     ast.BinOp: TraceEvent.after_binop,
     ast.Compare: TraceEvent.after_compare,
 }
+
+pyccolo.TraceEvent = TraceEvent
+pyccolo.before_class_body = TraceEvent.before_class_body

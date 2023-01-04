@@ -1,0 +1,6 @@
+-r torch_mlir.requirements.txt
+
+PyYAML
+pyccolo
+pybind11==2.8.0
+numpy

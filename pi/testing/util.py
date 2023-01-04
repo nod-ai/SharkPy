@@ -138,10 +138,11 @@ class PIConfig:
                 if isinstance(results[0], (tuple, list)):
                     results = results[0]
 
+                assert all(isinstance(r, (Tensor, ir.Value)) for r in results), results
                 # functions created from python can't return multiple results
                 if len(results) > 1:
+                    print("multiple results", results)
                     results = [torch_dialect.PrimTupleConstructOp(results).result]
-                    print(results)
 
                 canonical_func_type = ir.FunctionType.get(
                     inputs=[b.type for b in block_args],
@@ -151,8 +152,6 @@ class PIConfig:
                     canonical_func_type
                 )
 
-                # these are pi tensors
-                results = [r.value for r in results]
                 func_dialect.ReturnOp(results)
 
         return module

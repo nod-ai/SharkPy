@@ -127,9 +127,7 @@ class Transformer(Module):
     @staticmethod
     def generate_square_subsequent_mask(sz: int, device="cpu") -> Tensor:
 
-        return pi.triu(
-            pi.full((sz, sz), float("-inf"), device=device), diagonal=1
-        )
+        return pi.triu(pi.full((sz, sz), float("-inf"), device=device), diagonal=1)
 
     def _reset_parameters(self):
         for p in self.parameters():

@@ -45,6 +45,11 @@ class ConstantBoolOp:
         super().__init__(IntegerAttr.get(i1, int(value)))
 
 
+class ConstantDeviceOp:
+    def __init__(self, value: str):
+        super().__init__(StringAttr.get(value))
+
+
 class ConstantNumberOp:
     def __init__(self, value: Union[int, float]):
         if isinstance(value, int):
@@ -98,16 +103,48 @@ class PrimTupleConstructOp:
         super().__init__(res_type, elements, loc=loc, ip=ip)
 
 
+dtype_reg = re.compile(r"!torch.vtensor<\[.*],(.*)>")
+
+
+class PrimUncheckedCastOp:
+    def __init__(self, dst_el_type: Type, x: Value, *, loc=None, ip=None):
+        if not is_mlir_value(x):
+            assert is_mlir_value(
+                x
+            ), f"`x` should be a Value but is {type(x).__module__}.{type(x).__name__}"
+        else:
+            x = get_op_result_or_value(x)
+            assert str(x.type).startswith(
+                "!torch.vtensor"
+            ), f"`x` should be a torch.vtensor but is {type(x).__module__}.{type(x).__name__}"
+
+        src_el_type = dtype_reg.findall(str(x.type))
+        assert len(src_el_type) == 1
+        src_type = src_el_type[0]
+        result_type = Type.parse(str(x.type).replace(src_type, str(dst_el_type)))
+        super(PrimUncheckedCastOp, self).__init__(result_type, x, loc=loc, ip=ip)
+
+
 class AtenScalarImplicitOp:
-    def __init__(self, a: "pi.Tensor", *, loc=None, ip=None):
+    def __init__(self, a: Value, *, loc=None, ip=None):
         if not is_mlir_value(a):
             assert is_mlir_value(
                 a
-            ), f"`a` should be a Tensor but is {type(a).__module__}.{type(a).__name__}"
+            ), f"`a` should be a Value but is {type(a).__module__}.{type(a).__name__}"
         else:
             a = get_op_result_or_value(a)
             assert str(a.type).startswith(
                 "!torch.vtensor"
-            ), f"`a` should be a Tensor but is {type(a).__module__}.{type(a).__name__}"
+            ), f"`a` should be a torch.vtensor but is {type(a).__module__}.{type(a).__name__}"
 
-        super(AtenScalarImplicitOp, self).__init__(a, loc=loc, ip=ip)
+        src_el_type = dtype_reg.findall(str(a.type))
+        assert len(src_el_type) == 1
+        src_type = src_el_type[0]
+        if src_type.startswith("f"):
+            res_type = Type.parse(f"!torch.float")
+        elif src_type.startswith("si"):
+            res_type = Type.parse(f"!torch.int")
+        else:
+            raise NotImplementedError(src_type)
+
+        super(AtenScalarImplicitOp, self).__init__(res_type, a, loc=loc, ip=ip)

@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
+        os: [ ubuntu-latest ]
         arch: [ x86_64 ]
         python_version: [ "3.10" ]
         exclude:
@@ -36,11 +36,9 @@ jobs:
 
       - name: Build wheel
         run: |
-          python -m pip wheel . \
-            --wheel-dir wheelhouse \
-            --pre torch-mlir torchvision \
-            -f https://llvm.github.io/torch-mlir/package-index/ \
-            --extra-index-url https://download.pytorch.org/whl/nightly/cpu
+          pip install wheel cmake ninja
+          pip install -r torch_mlir.requirements.txt
+          pip wheel . --wheel-dir wheelhouse --no-build-isolation
           
           mkdir -p ${{ github.sha }}
           mv wheelhouse/PI*.whl ${{ github.sha }}/

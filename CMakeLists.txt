@@ -23,6 +23,26 @@ set(CMAKE_BUILD_WITH_INSTALL_NAME_DIR ON)
 
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard to conform to")
 
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+#    MESSAGE("Clang")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    execute_process(
+            COMMAND ${Python3_EXECUTABLE} get_torch_mlir_pybind_v_abi.py
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/scripts
+            ERROR_VARIABLE error
+            OUTPUT_VARIABLE ABI_VERSION
+    )
+    if(NOT error STREQUAL "")
+        message(STATUS "Torch-MLIR ABI Version ERROR: ${error}")
+    endif()
+    message(STATUS "Torch-MLIR ABI Version: ${ABI_VERSION}")
+    add_definitions("-fabi-version=${ABI_VERSION}")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+#    MESSAGE("Intel")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+#    MESSAGE("MSVC")
+endif()
+
 find_package(MLIR REQUIRED CONFIG)
 
 message(STATUS "Using MLIRConfig.cmake in: ${MLIR_DIR}")
@@ -53,10 +73,7 @@ mlir_detect_pybind11_install()
 
 set(PYTHON_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cpp_ext) # --src-root
 set(MLIR_BINARY_DIR ${CMAKE_BINARY_DIR})
-# set(MLIR_TABLEGEN_EXE "" CACHE STRING "Path to mlir-tablegen")
-# message(STATUS "MLIR_TABLEGEN_EXE: ${MLIR_TABLEGEN_EXE}")
 set(MLIR_INCLUDE_TESTS 0)
 
 pybind11_add_module(_mlir cpp_ext/MainModule.cpp cpp_ext/TensorValue.cpp cpp_ext/TorchTypes.cpp)
-#target_link_libraries(_mlir PRIVATE MLIRIR MLIRSupport MLIRCAPIInterfaces MLIRCAPIIR)
 

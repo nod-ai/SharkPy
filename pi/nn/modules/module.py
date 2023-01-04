@@ -55,6 +55,12 @@ class Module:
     def forward(self, *args, **kwargs):
         raise NotImplementedError
 
+    def eval(self):
+        pass
+
+    def train(self):
+        pass
+
     def __call__(self, *args, **kwargs):
         for hook_id, hook in self._forward_pre_hooks.items():
             result = hook(self, *args, **kwargs)  # type: ignore[misc]

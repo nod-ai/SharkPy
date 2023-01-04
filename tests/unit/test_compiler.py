@@ -7,5 +7,5 @@ from pi.compiler.compiler import mlir_trace
 mlir_module = mlir_trace(os.path.abspath("simple_kernels.py"))
 print(mlir_module)
 
-mlir_module = mlir_trace(os.path.abspath("nn_module.py"))
-print(mlir_module)
+# mlir_module = mlir_trace(os.path.abspath("nn_module.py"))
+# print(mlir_module)

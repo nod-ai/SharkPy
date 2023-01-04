@@ -1,6 +1,9 @@
 import inspect
+import warnings
 from functools import partial
 from typing import Union, List, Tuple
+
+import pi
 
 # this is the right way to import in order to not screw up the tests (torch.dtype vs pi.type)
 from ..types_ import dtype as pi_dtype
@@ -34,12 +37,22 @@ class Uninitialized(partial):
         instance.size = args
         if "dtype" in keywords and keywords["dtype"] is not None:
             dtype = keywords["dtype"]
-            assert isinstance(
-                dtype, pi_dtype
-            ), f"unknown dtype {type(dtype).__module__}.{type(dtype).__name__} (should be {pi_dtype.__module__}.{pi_dtype.__name__})"
+            if not isinstance(dtype, pi_dtype):
+                warnings.warn(
+                    f"unknown dtype {type(dtype).__module__}.{type(dtype).__name__} (should be {pi_dtype.__module__}.{pi_dtype.__name__})"
+                )
             instance.dtype = dtype
 
         return instance
+
+    def fill_(self, val):
+        pass
+
+    def zero_(self):
+        self.__setstate__((pi.zeros, self.args, self.keywords, self.__dict__))
+
+    def ones_(self):
+        self.__setstate__((pi.ones, self.args, self.keywords, self.__dict__))
 
     def __call__(self, /, *args, **keywords):
         keywords = {**self.keywords, **keywords}

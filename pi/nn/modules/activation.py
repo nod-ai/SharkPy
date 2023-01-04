@@ -504,9 +504,7 @@ class MultiheadAttention(Module):
         is_batched = query.dim() == 3
         if key_padding_mask is not None:
             _kpm_dtype = key_padding_mask.dtype
-            if _kpm_dtype != pi.bool and not pi.is_floating_point(
-                key_padding_mask
-            ):
+            if _kpm_dtype != pi.bool and not pi.is_floating_point(key_padding_mask):
                 raise AssertionError(
                     "only bool and floating types of key_padding_mask are supported"
                 )

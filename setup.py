@@ -7,6 +7,7 @@ import tarfile
 import urllib.request
 from pathlib import Path
 
+from pip._internal.req import parse_requirements
 from setuptools import Extension, setup, find_namespace_packages
 from setuptools.command.build_ext import build_ext
 
@@ -141,21 +142,22 @@ packages = find_namespace_packages(
     ],
 )
 
-
 VERSION = "0.0.2"
 
 if len(sys.argv) > 1 and sys.argv[1] == "--version":
     print(VERSION)
 else:
+    install_reqs = parse_requirements("requirements.txt", session="hack")
     setup(
         name="PI",
         version=VERSION,
         author="Maksim Levental",
         author_email="maksim.levental@gmail.com",
         description="A lightweight MLIR Python frontend with PyTorch like syntax",
-        # ext_modules=[CMakeExtension("_tensor")],
-        # cmdclass={"build_ext": CMakeBuild},
+        ext_modules=[CMakeExtension("_mlir")],
+        cmdclass={"build_ext": CMakeBuild},
         packages=packages,
         zip_safe=False,
-        install_requires=["PyYAML", "pyccolo", "torch-mlir", "multiprocess"],
+        # install_requires=["PyYAML", "pyccolo", "torch-mlir", "multiprocess", "numpy"]
+        install_requires=[str(ir.requirement) for ir in install_reqs],
     )

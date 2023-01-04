@@ -34,7 +34,7 @@ conv_transpose1d = pi.conv_transpose1d
 # Pooling
 # avg_pool1d = pi.avg_pool1d
 
-avg_pool2d = pi._nn.avg_pool2d
+avg_pool2d = pi._C._nn.avg_pool2d
 
 
 # avg_pool3d = pi._C._nn.avg_pool3d
@@ -201,7 +201,7 @@ def max_pool2d_with_indices(
     ceil_mode: bool = False,
     return_indices: bool = False,
 ) -> Tuple[Tensor, Tensor]:
-    return pi._nn.max_pool2d_with_indices(
+    return pi._C._nn.max_pool2d_with_indices(
         input, kernel_size, stride, padding, dilation, ceil_mode
     )
 
@@ -401,9 +401,7 @@ def lp_pool1d(
             input.pow(norm_type), kernel_size, padding=0, ceil_mode=ceil_mode
         )
 
-    return (
-        (pi.sign(out) * relu(pi.abs(out))).mul(kernel_size).pow(1.0 / norm_type)
-    )
+    return (pi.sign(out) * relu(pi.abs(out))).mul(kernel_size).pow(1.0 / norm_type)
 
 
 def adaptive_max_pool1d_with_indices(
@@ -481,7 +479,7 @@ adaptive_max_pool3d = boolean_dispatch(
 
 def adaptive_avg_pool2d(input: Tensor, output_size: BroadcastingList2[int]) -> Tensor:
     _output_size = _list_with_default(output_size, input.size())
-    return pi._nn.adaptive_avg_pool2d(input, _output_size)
+    return pi._C._nn.adaptive_avg_pool2d(input, _output_size)
 
 
 def adaptive_avg_pool3d(input: Tensor, output_size: BroadcastingList3[int]) -> Tensor:
@@ -673,20 +671,20 @@ def hardtanh(
     input: Tensor, min_val: float = -1.0, max_val: float = 1.0, inplace: bool = False
 ) -> Tensor:
     if inplace:
-        result = pi._nn.hardtanh_(input, min_val, max_val)
+        result = pi._C._nn.hardtanh_(input, min_val, max_val)
     else:
-        result = pi._nn.hardtanh(input, min_val, max_val)
+        result = pi._C._nn.hardtanh(input, min_val, max_val)
     return result
 
 
-hardtanh_ = pi._nn.hardtanh_
+hardtanh_ = pi._C._nn.hardtanh_
 
 
 def relu6(input: Tensor, inplace: bool = False) -> Tensor:
     if inplace:
-        result = pi._nn.relu6_(input)
+        result = pi._C._nn.relu6_(input)
     else:
-        result = pi._nn.relu6(input)
+        result = pi._C._nn.relu6(input)
     return result
 
 
@@ -727,13 +725,13 @@ def leaky_relu(
     input: Tensor, negative_slope: float = 0.01, inplace: bool = False
 ) -> Tensor:
     if inplace:
-        result = pi._nn.leaky_relu_(input, negative_slope)
+        result = pi._C._nn.leaky_relu_(input, negative_slope)
     else:
-        result = pi._nn.leaky_relu(input, negative_slope)
+        result = pi._C._nn.leaky_relu(input, negative_slope)
     return result
 
 
-leaky_relu_ = pi._nn.leaky_relu_
+leaky_relu_ = pi._C._nn.leaky_relu_
 
 
 # prelu = pi.prelu
@@ -770,7 +768,7 @@ def softsign(input):
     return input / (input.abs() + 1)
 
 
-softplus = pi._nn.softplus
+softplus = pi._C._nn.softplus
 
 
 def _get_softmax_dim(name: str, ndim: int, stacklevel: int) -> int:
@@ -879,7 +877,7 @@ def hardsigmoid(input: Tensor, inplace: bool = False) -> Tensor:
     return pi._C._nn.hardsigmoid(input)
 
 
-linear = pi._nn.linear
+linear = pi._C._nn.linear
 
 
 # bilinear = pi.bilinear
@@ -899,8 +897,8 @@ def mish(input: Tensor, inplace: bool = False) -> Tensor:
 
 def hardswish(input: Tensor, inplace: bool = False) -> Tensor:
     if inplace:
-        return pi._nn.hardswish_(input)
-    return pi._nn.hardswish(input)
+        return pi._C._nn.hardswish_(input)
+    return pi._C._nn.hardswish(input)
 
 
 def _no_grad_embedding_renorm_(
@@ -1231,7 +1229,7 @@ def nll_loss(
 ) -> Tensor:
     if size_average is not None or reduce is not None:
         reduction = _Reduction.legacy_get_string(size_average, reduce)
-    return pi._nn.nll_loss_nd(
+    return pi._C._nn.nll_loss_nd(
         input, target, weight, _Reduction.get_enum(reduction), ignore_index
     )
 
@@ -1513,7 +1511,7 @@ def mse_loss(
         reduction = _Reduction.legacy_get_string(size_average, reduce)
 
     expanded_input, expanded_target = pi.broadcast_tensors(input, target)
-    return pi._nn.mse_loss(
+    return pi._C._nn.mse_loss(
         expanded_input, expanded_target, _Reduction.get_enum(reduction)
     )
 
@@ -1654,9 +1652,7 @@ def multi_margin_loss(
         if weight.dim() != 1:
             raise ValueError("weight must be one-dimensional")
 
-    return pi._C._nn.multi_margin_loss(
-        input, target, p, margin, weight, reduction_enum
-    )
+    return pi._C._nn.multi_margin_loss(input, target, p, margin, weight, reduction_enum)
 
 
 # pixel_shuffle = pi.pixel_shuffle
@@ -1761,8 +1757,8 @@ def interpolate(
                 (
                     pi.floor(
                         (
-                                input.size(i + 2).float()
-                                * pi.tensor(scale_factors[i], dtype=pi.float32)
+                            input.size(i + 2).float()
+                            * pi.tensor(scale_factors[i], dtype=pi.float32)
                         ).float()
                     )
                 )
@@ -1986,7 +1982,7 @@ def affine_grid(
     return pi.affine_grid_generator(theta, size, align_corners)
 
 
-pad = pi._nn.pad
+pad = pi._C._nn.pad
 
 
 # distance
@@ -2382,7 +2378,7 @@ def multi_head_attention_forward(
             attn_mask = attn_mask.to(pi.bool)
         else:
             assert (
-                    attn_mask.is_floating_point() or attn_mask.dtype == pi.bool
+                attn_mask.is_floating_point() or attn_mask.dtype == pi.bool
             ), f"Only float, byte, and bool types are supported for attn_mask, not {attn_mask.dtype}"
         # ensure attn_mask's dim is 3
         if attn_mask.dim() == 2:

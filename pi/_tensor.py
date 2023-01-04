@@ -1,2133 +1,3702 @@
 from __future__ import annotations
+import builtins
 import warnings
-from typing import Tuple, Optional, Any
-
-# noinspection PyUnresolvedReferences
+from numbers import Number
+from typing import (
+    Tuple,
+    Optional,
+    Any,
+    List,
+    Dict,
+    Callable,
+    Union,
+    Sequence,
+    Generator,
+    Literal,
+)
 import numpy as np
+import pi
 from torch_mlir.dialects import torch as torch_dialect
 from torch_mlir.dialects._ods_common import get_op_result_or_value
-from torch_mlir.ir import (
-    DenseElementsAttr,
+from torch_mlir.ir import DenseElementsAttr
+from torch_mlir.ir import Value as MLIRValue
+from .types_ import (
+    dtype as pi_dtype,
+    Size,
+    device,
+    layout,
+    Device,
+    memory_format,
+    contiguous_format,
+    is_a_torch_tensor
 )
-from torch_mlir.ir import (
-    Value as MLIRValue,
-)
-
-import pi
-from .types_ import dtype as pi_dtype
+from .dispatcher import dispatch
+from pi._mlir import _Torch_Tensor
 
 
-class TorchTensorWrapper(type):
-    # def __new__(mcs, name, bases, class_dict):
-    #     for k, f in class_dict.items():
-    #         if k in {"__init__", "__hash__", "_version", "value", "__class__", "type"}:
-    #             continue
-    #         if inspect.isfunction(f) and not isinstance(f, property):
-    #             def run_on_actual_value(*args, **kwargs):
-    #                 self = args[0]
-    #                 return f((self.value, *args[1:]), **kwargs)
-    #
-    #             class_dict[k] = run_on_actual_value
-    #     return type.__new__(mcs, name, bases, class_dict)
+class ComplexReturnType:
+    def __init__(self, name):
+        self.name = name
 
-    def __subclasscheck__(cls, subclass):
-        print(cls, subclass)
-        return False
+
+class Tensor(_Torch_Tensor):
+    requires_grad: bool
+    shape: Size
+    data: Tensor
+    names: List[str]
+    device: device
+    dtype: pi_dtype
+    layout: layout
+    real: Tensor
+    imag: Tensor
+    T: Tensor
+    H: Tensor
+    mT: Tensor
+    mH: Tensor
+    ndim: int
+    output_nr: int
+    _version: int
+    _base: Optional[Tensor]
+    _cdata: int
+    grad_fn: Any
+    _grad_fn: Any
+    _grad: Optional[Tensor]
+    grad: Optional[Tensor]
+    _backward_hooks: Optional[Dict[int, Callable[[Tensor], Optional[Tensor]]]]
 
     @classmethod
-    def __instancecheck__(cls, instance):
-        try:
-            return instance.is_pi_tensor
-        except:
-            return False
-
-
-class Tensor(metaclass=TorchTensorWrapper):
-    @property
-    def is_pi_tensor(self):
+    def _is_pi_tensor(self):
         return True
 
     @property
     def __class__(self):
         return MLIRValue
 
-    @property
-    def type(self):
-        return self._value.type
-
-    @property
-    def value(self):
-        return self._value
-
     def __init__(self, tensor: MLIRValue):
-        self._value = get_op_result_or_value(tensor)
+        tensor = get_op_result_or_value(tensor)
+        super(Tensor, self).__init__(tensor._CAPIPtr)
 
-    def abs(self):
-        raise NotImplementedError
+    def __abs__(self: Tensor) -> Tensor:
+        return pi.abs(self)
 
-    def absolute(self):
-        raise NotImplementedError
+    def __add__(self: Tensor, other: Any) -> Tensor:
+        return pi.add(self, other)
 
-    def absolute_(self):
-        raise NotImplementedError
+    @dispatch
+    def __and__(self: Tensor, other: Tensor) -> Tensor:
+        return pi.__and__(self, other)
 
-    def abs_(self):
-        raise NotImplementedError
+    @dispatch
+    def __and__(self: Tensor, other: Number) -> Tensor:
+        return pi.__and__(self, other)
 
-    def acos(self):
-        raise NotImplementedError
+    @dispatch
+    def __and__(self: Tensor, other: Any) -> Tensor:
+        return pi.__and__(self, other)
 
-    def acosh(self):
-        raise NotImplementedError
+    def __bool__(self: Tensor) -> builtins.bool:
+        raise NotImplementedError("__bool__")
 
-    def acosh_(self):
-        raise NotImplementedError
+    def __complex__(self: Tensor) -> builtins.complex:
+        raise NotImplementedError("__complex__")
 
-    def acos_(self):
-        raise NotImplementedError
+    def __div__(self: Tensor, other: Tensor) -> Tensor:
+        return pi.div(self, other)
 
-    def add(self, other, *args, **kwargs):
-        raise NotImplementedError
+    def __eq__(self: Tensor, other: Any) -> Tensor:
+        return pi.eq(self, other)
 
-    def addbmm(self, batch1, batch2, *args, **kwargs):
-        raise NotImplementedError
+    def __float__(self: Tensor) -> builtins.float:
+        raise NotImplementedError("__float__")
 
-    def addbmm_(self, batch1, batch2, *args, **kwargs):
-        raise NotImplementedError
+    def __floordiv__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__floordiv__")
 
-    def addcdiv(self, tensor1, tensor2, *args, **kwargs):
-        raise NotImplementedError
+    def __ge__(self: Tensor, other: Any) -> Tensor:
+        return pi.ge(self, other)
 
-    def addcdiv_(self, tensor1, tensor2, *args, **kwargs):
-        raise NotImplementedError
+    def __getitem__(
+        self: Tensor, indices: Union[None, int, slice, Tensor, List, Tuple]
+    ) -> Tensor:
+        if not isinstance(indices, Sequence):
+            indices = [indices]
 
-    def addcmul(self, tensor1, tensor2, *args, **kwargs):
-        raise NotImplementedError
+        t = self
+        for i, ind in enumerate(indices):
+            if isinstance(ind, int):
+                t = pi.slice(t, ind)
+            elif isinstance(ind, slice):
+                t = pi.slice(t, dim=i, start=ind.start, end=ind.stop, step=ind.step or 1)
 
-    def addcmul_(self, tensor1, tensor2, *args, **kwargs):
-        raise NotImplementedError
+        return t
 
-    def addmm(self, mat1, mat2, *args, **kwargs):
-        raise NotImplementedError
 
-    def addmm_(self, mat1, mat2, *args, **kwargs):
-        raise NotImplementedError
+    def __gt__(self: Tensor, other: Any) -> Tensor:
+        return pi.gt(self, other)
 
-    def addmv(self, mat, vec, *args, **kwargs):
-        raise NotImplementedError
+    def __iadd__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__iadd__")
 
-    def addmv_(self, mat, vec, *args, **kwargs):
-        raise NotImplementedError
+    @dispatch
+    def __iand__(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("__iand__")
 
-    def addr(self, vec1, vec2, *args, **kwargs):
-        raise NotImplementedError
+    @dispatch
+    def __iand__(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("__iand__")
 
-    def addr_(self, vec1, vec2, *args, **kwargs):
-        raise NotImplementedError
+    @dispatch
+    def __iand__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__iand__")
 
-    def add_(self, other, *args, **kwargs):
-        raise NotImplementedError
+    def __idiv__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__idiv__")
 
-    def adjoint(self):
-        raise NotImplementedError
+    def __ifloordiv__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__ifloordiv__")
 
-    def align_as(self, other):
-        raise NotImplementedError
+    @dispatch
+    def __ilshift__(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("__ilshift__")
 
-    def align_to(self, *args, **kwargs):
-        raise NotImplementedError
+    @dispatch
+    def __ilshift__(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("__ilshift__")
 
-    def all(self, dim=None, keepdim=False):
-        raise NotImplementedError
+    @dispatch
+    def __ilshift__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__ilshift__")
 
-    def allclose(self, other, rtol=1, *args, **kwargs):
-        raise NotImplementedError
+    def __imod__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__imod__")
 
-    def amax(self, dim=None, keepdim=False):
-        raise NotImplementedError
+    def __imul__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__imul__")
 
-    def amin(self, dim=None, keepdim=False):
-        raise NotImplementedError
+    def __index__(self: Tensor) -> builtins.int:
+        raise NotImplementedError("__index__")
 
-    def aminmax(self, *args, **kwargs):
-        raise NotImplementedError
+    def __int__(self: Tensor) -> builtins.int:
+        raise NotImplementedError("__int__")
 
-    def angle(self):
-        raise NotImplementedError
+    def __invert__(self: Tensor) -> Tensor:
+        raise NotImplementedError("__invert__")
 
-    def any(self, dim=None, keepdim=False):
-        raise NotImplementedError
+    @dispatch
+    def __ior__(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("__ior__")
 
-    def apply_(self, callable):
-        raise NotImplementedError
+    @dispatch
+    def __ior__(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("__ior__")
 
-    def arccos(self):
-        raise NotImplementedError
+    @dispatch
+    def __ior__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__ior__")
 
-    def arccosh(self, *args, **kwargs):
-        raise NotImplementedError
+    @dispatch
+    def __irshift__(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("__irshift__")
 
-    def arccosh_(self, *args, **kwargs):
-        raise NotImplementedError
+    @dispatch
+    def __irshift__(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("__irshift__")
 
-    def arccos_(self):
-        raise NotImplementedError
+    @dispatch
+    def __irshift__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__irshift__")
 
-    def arcsin(self):
-        raise NotImplementedError
+    def __isub__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__isub__")
 
-    def arcsinh(self):
-        raise NotImplementedError
+    @dispatch
+    def __ixor__(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("__ixor__")
 
-    def arcsinh_(self):
-        raise NotImplementedError
+    @dispatch
+    def __ixor__(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("__ixor__")
 
-    def arcsin_(self):
-        raise NotImplementedError
+    @dispatch
+    def __ixor__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__ixor__")
 
-    def arctan(self):
-        raise NotImplementedError
+    def __le__(self: Tensor, other: Any) -> Tensor:
+        return pi.le(self, other)
 
-    def arctan2(self, other):
-        raise NotImplementedError
+    def __long__(self: Tensor) -> builtins.int:
+        raise NotImplementedError("__long__")
 
-    def arctan2_(self, *args, **kwargs):
-        raise NotImplementedError
+    @dispatch
+    def __lshift__(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("__lshift__")
 
-    def arctanh(self):
-        raise NotImplementedError
+    @dispatch
+    def __lshift__(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("__lshift__")
 
-    def arctanh_(self, other):
-        raise NotImplementedError
+    @dispatch
+    def __lshift__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__lshift__")
 
-    def arctan_(self):
-        raise NotImplementedError
+    def __lt__(self: Tensor, other: Any) -> Tensor:
+        return pi.lt(self, other)
 
-    def argmax(self, dim=None, keepdim=False):
-        raise NotImplementedError
+    def __matmul__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__matmul__")
 
-    def argmin(self, dim=None, keepdim=False):
-        raise NotImplementedError
+    def __mod__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__mod__")
 
-    def argsort(self, dim=-1, descending=False):
-        raise NotImplementedError
+    def __mul__(self: Tensor, other: Tensor) -> Tensor:
+        return pi.mul(self, other)
 
-    def argwhere(self):
-        raise NotImplementedError
+    def __ne__(self: Tensor, other: Any) -> Tensor:
+        return pi.ne(self, other)
 
-    def asin(self):
-        raise NotImplementedError
+    def __neg__(self: Tensor) -> Tensor:
+        return pi.neg(self)
 
-    def asinh(self):
-        raise NotImplementedError
+    def __nonzero__(self: Tensor) -> builtins.bool:
+        raise NotImplementedError("__nonzero__")
 
-    def asinh_(self):
-        raise NotImplementedError
+    @dispatch
+    def __or__(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("__or__")
 
-    def asin_(self):
-        raise NotImplementedError
+    @dispatch
+    def __or__(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("__or__")
 
-    def as_strided(self, size, stride, storage_offset=None):
-        raise NotImplementedError
+    @dispatch
+    def __or__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__or__")
 
-    def as_strided_(self, *args, **kwargs):
-        raise NotImplementedError
+    def __pow__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__pow__")
 
-    def as_strided_scatter(self, src, size, stride, storage_offset=None):
-        raise NotImplementedError
+    def __radd__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__radd__")
 
-    def as_subclass(self, cls):
-        raise NotImplementedError
+    def __rand__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__rand__")
 
-    def atan(self):
-        raise NotImplementedError
+    def __rfloordiv__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__rfloordiv__")
 
-    def atan2(self, other):
-        raise NotImplementedError
+    def __rmul__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__rmul__")
 
-    def atan2_(self, other):
-        raise NotImplementedError
+    def __ror__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__ror__")
 
-    def atanh(self):
-        raise NotImplementedError
+    def __rpow__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__rpow__")
 
-    def atanh_(self, other):
-        raise NotImplementedError
+    @dispatch
+    def __rshift__(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("__rshift__")
 
-    def atan_(self):
-        raise NotImplementedError
+    @dispatch
+    def __rshift__(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("__rshift__")
 
-    def baddbmm(self, batch1, batch2, *args, **kwargs):
-        raise NotImplementedError
+    @dispatch
+    def __rshift__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__rshift__")
 
-    def baddbmm_(self, batch1, batch2, *args, **kwargs):
-        raise NotImplementedError
+    def __rsub__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__rsub__")
 
-    def bernoulli(self, *args, **kwargs):
-        raise NotImplementedError
+    def __rtruediv__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__rtruediv__")
 
-    def bernoulli_(self, p=0.5, *args, **kwargs):
-        raise NotImplementedError
+    def __rxor__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__rxor__")
 
-    def bfloat16(self, memory_format=None):
-        raise NotImplementedError
+    def __setitem__(
+        self: Tensor,
+        indices: Union[None, int, slice, Tensor, List, Tuple],
+        val: Union[Tensor, Number],
+    ) -> None:
+        raise NotImplementedError("__setitem__")
 
-    def bincount(self, weights=None, minlength=0):
-        raise NotImplementedError
+    def __sub__(self: Tensor, other: Tensor) -> Tensor:
+        return pi.sub(self, other)
 
-    def bitwise_and(self):
-        raise NotImplementedError
+    def __truediv__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__truediv__")
 
-    def bitwise_and_(self):
-        raise NotImplementedError
+    @dispatch
+    def __xor__(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("__xor__")
 
-    def bitwise_left_shift(self, other):
-        raise NotImplementedError
+    @dispatch
+    def __xor__(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("__xor__")
 
-    def bitwise_left_shift_(self, other):
-        raise NotImplementedError
+    @dispatch
+    def __xor__(self: Tensor, other: Any) -> Tensor:
+        raise NotImplementedError("__xor__")
 
-    def bitwise_not(self):
-        raise NotImplementedError
+    def __repr__(self):
+        return "Tensor" + str(self)
 
-    def bitwise_not_(self):
-        raise NotImplementedError
+    def _addmm_activation(
+        self: Tensor,
+        mat1: Tensor,
+        mat2: Tensor,
+        *,
+        beta: Number = 1,
+        alpha: Number = 1,
+        use_gelu: bool = False,
+    ) -> Tensor:
+        raise NotImplementedError("_addmm_activation")
 
-    def bitwise_or(self):
-        raise NotImplementedError
+    def _autocast_to_full_precision(
+        self: Tensor, cuda_enabled: bool, cpu_enabled: bool
+    ) -> Tensor:
+        raise NotImplementedError("_autocast_to_full_precision")
 
-    def bitwise_or_(self):
-        raise NotImplementedError
+    def _autocast_to_reduced_precision(
+        self: Tensor,
+        cuda_enabled: bool,
+        cpu_enabled: bool,
+        cuda_dtype: pi_dtype,
+        cpu_dtype: pi_dtype,
+    ) -> Tensor:
+        raise NotImplementedError("_autocast_to_reduced_precision")
 
-    def bitwise_right_shift(self, other):
-        raise NotImplementedError
+    def _coalesced_(self: Tensor, coalesced: bool) -> Tensor:
+        raise NotImplementedError("_coalesced_")
 
-    def bitwise_right_shift_(self, other):
-        raise NotImplementedError
+    def _conj(self: Tensor) -> Tensor:
+        raise NotImplementedError("_conj")
 
-    def bitwise_xor(self):
-        raise NotImplementedError
+    def _conj_physical(self: Tensor) -> Tensor:
+        raise NotImplementedError("_conj_physical")
 
-    def bitwise_xor_(self):
-        raise NotImplementedError
+    def _dimI(self: Tensor) -> int:
+        raise NotImplementedError("_dimI")
 
-    def bmm(self, batch2):
-        raise NotImplementedError
+    def _dimV(self: Tensor) -> int:
+        raise NotImplementedError("_dimV")
 
-    def bool(self, memory_format=None):
-        raise NotImplementedError
+    def _indices(self: Tensor) -> Tensor:
+        raise NotImplementedError("_indices")
 
-    def broadcast_to(self, shape):
-        raise NotImplementedError
+    def _is_view(self: Tensor) -> bool:
+        raise NotImplementedError("_is_view")
 
-    def byte(self, memory_format=None):
-        raise NotImplementedError
+    def _is_zerotensor(self: Tensor) -> bool:
+        raise NotImplementedError("_is_zerotensor")
+
+    def _make_subclass(
+        cls,
+        data: Tensor,
+        require_grad: bool = False,
+        dispatch_strides: bool = False,
+        dispatch_device: bool = False,
+        device_for_backend_keys: Optional[device] = None,
+    ) -> Tensor:
+        raise NotImplementedError("_make_subclass")
+
+    def _neg_view(self: Tensor) -> Tensor:
+        raise NotImplementedError("_neg_view")
+
+    def _nested_tensor_size(self: Tensor) -> Tensor:
+        raise NotImplementedError("_nested_tensor_size")
+
+    def _nnz(self: Tensor) -> int:
+        raise NotImplementedError("_nnz")
+
+    def _to_dense(self: Tensor, dtype: Optional[pi_dtype] = None) -> Tensor:
+        raise NotImplementedError("_to_dense")
+
+    def _values(self: Tensor) -> Tensor:
+        raise NotImplementedError("_values")
+
+    def abs(self: Tensor) -> Tensor:
+        return pi.abs(self)
+
+    def abs_(self: Tensor) -> Tensor:
+        return pi.abs_(self)
+
+    def absolute(self: Tensor) -> Tensor:
+        raise NotImplementedError("absolute")
+
+    def absolute_(self: Tensor) -> Tensor:
+        raise NotImplementedError("absolute_")
+
+    def acos(self: Tensor) -> Tensor:
+        raise NotImplementedError("acos")
+
+    def acos_(self: Tensor) -> Tensor:
+        raise NotImplementedError("acos_")
+
+    def acosh(self: Tensor) -> Tensor:
+        raise NotImplementedError("acosh")
+
+    def acosh_(self: Tensor) -> Tensor:
+        raise NotImplementedError("acosh_")
+
+    def add(
+        self: Tensor,
+        other: Union[Tensor, Number],
+        *,
+        alpha: Optional[Number] = 1,
+        out: Optional[Tensor] = None,
+    ) -> Tensor:
+        if out is not None:
+            raise NotImplementedError("add.out variant")
+        return pi.add(self, other, alpha)
+
+    def add_(
+        self: Tensor, other: Union[Tensor, Number], *, alpha: Optional[Number] = 1
+    ) -> Tensor:
+        return pi.add_(self, other, alpha)
+
+    def addbmm(
+        self: Tensor,
+        batch1: Tensor,
+        batch2: Tensor,
+        *,
+        beta: Number = 1,
+        alpha: Number = 1,
+    ) -> Tensor:
+        raise NotImplementedError("addbmm")
+
+    def addbmm_(
+        self: Tensor,
+        batch1: Tensor,
+        batch2: Tensor,
+        *,
+        beta: Number = 1,
+        alpha: Number = 1,
+    ) -> Tensor:
+        raise NotImplementedError("addbmm_")
+
+    def addcdiv(
+        self: Tensor, tensor1: Tensor, tensor2: Tensor, *, value: Number = 1
+    ) -> Tensor:
+        return pi.addcdiv(self, tensor1, tensor2, value)
+
+    def addcdiv_(
+        self: Tensor, tensor1: Tensor, tensor2: Tensor, *, value: Number = 1
+    ) -> Tensor:
+        return pi.addcdiv_(self, tensor1, tensor2, value)
+
+    def addcmul(
+        self: Tensor, tensor1: Tensor, tensor2: Tensor, *, value: Number = 1
+    ) -> Tensor:
+        return pi.addcmul(self, tensor1, tensor2, value)
+
+    def addcmul_(
+        self: Tensor, tensor1: Tensor, tensor2: Tensor, *, value: Number = 1
+    ) -> Tensor:
+        return pi.addcmul_(self, tensor1, tensor2, value)
+
+    def addmm(
+        self: Tensor, mat1: Tensor, mat2: Tensor, *, beta: Number = 1, alpha: Number = 1
+    ) -> Tensor:
+        return pi.addmm(self, mat1, mat2, beta, alpha)
+
+    def addmm_(
+        self: Tensor, mat1: Tensor, mat2: Tensor, *, beta: Number = 1, alpha: Number = 1
+    ) -> Tensor:
+        raise NotImplementedError("addmm_")
+
+    def addmv(
+        self: Tensor, mat: Tensor, vec: Tensor, *, beta: Number = 1, alpha: Number = 1
+    ) -> Tensor:
+        raise NotImplementedError("addmv")
+
+    def addmv_(
+        self: Tensor, mat: Tensor, vec: Tensor, *, beta: Number = 1, alpha: Number = 1
+    ) -> Tensor:
+        raise NotImplementedError("addmv_")
+
+    def addr(
+        self: Tensor, vec1: Tensor, vec2: Tensor, *, beta: Number = 1, alpha: Number = 1
+    ) -> Tensor:
+        raise NotImplementedError("addr")
+
+    def addr_(
+        self: Tensor, vec1: Tensor, vec2: Tensor, *, beta: Number = 1, alpha: Number = 1
+    ) -> Tensor:
+        raise NotImplementedError("addr_")
+
+    def adjoint(self: Tensor) -> Tensor:
+        raise NotImplementedError("adjoint")
+
+    def align_as(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("align_as")
+
+    @dispatch
+    def align_to(
+        self: Tensor, order: Sequence[Union[str, ellipsis, None]], ellipsis_idx: int
+    ) -> Tensor:
+        raise NotImplementedError("align_to")
 
-    def cauchy_(self, median=0, sigma=1, *args, **kwargs):
-        raise NotImplementedError
+    @dispatch
+    def align_to(self: Tensor, names: Sequence[Union[str, ellipsis, None]]) -> Tensor:
+        raise NotImplementedError("align_to")
 
-    def ccol_indices(self, *args, **kwargs):
-        raise NotImplementedError
+    @dispatch
+    def all(self: Tensor) -> Tensor:
+        return pi.all(self)
 
-    def cdouble(self, memory_format=None):
-        raise NotImplementedError
+    @dispatch
+    def all(self: Tensor, dim: int, keepdim: bool = False) -> Tensor:
+        return pi.all(self, dim, keepdim)
 
-    def ceil(self):
-        raise NotImplementedError
-
-    def ceil_(self):
-        raise NotImplementedError
-
-    def cfloat(self, memory_format=None):
-        raise NotImplementedError
-
-    def chalf(self, memory_format=None):
-        raise NotImplementedError
-
-    def char(self, memory_format=None):
-        raise NotImplementedError
-
-    def cholesky(self, upper=False):
-        raise NotImplementedError
-
-    def cholesky_inverse(self, upper=False):
-        raise NotImplementedError
-
-    def cholesky_solve(self, input2, upper=False):
-        raise NotImplementedError
-
-    def chunk(self, chunks, dim=0):
-        raise NotImplementedError
-
-    def clamp(self, min=None, max=None):
-        raise NotImplementedError
-
-    def clamp_(self, min=None, max=None):
-        raise NotImplementedError
-
-    def clamp_max(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def clamp_max_(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def clamp_min(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def clamp_min_(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def clip(self, min=None, max=None):
-        raise NotImplementedError
-
-    def clip_(self, min=None, max=None):
-        raise NotImplementedError
-
-    def clone(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def coalesce(self):
-        raise NotImplementedError
-
-    def col_indices(self):
-        raise NotImplementedError
-
-    def conj(self):
-        raise NotImplementedError
-
-    def conj_physical(self):
-        raise NotImplementedError
-
-    def conj_physical_(self):
-        raise NotImplementedError
-
-    def contiguous(self, memory_format=None):
-        raise NotImplementedError
-
-    def copysign(self, other):
-        raise NotImplementedError
-
-    def copysign_(self, other):
-        raise NotImplementedError
-
-    def copy_(self, src, non_blocking=False):
-        raise NotImplementedError
-
-    def corrcoef(self):
-        raise NotImplementedError
-
-    def cos(self):
-        raise NotImplementedError
-
-    def cosh(self):
-        raise NotImplementedError
-
-    def cosh_(self):
-        raise NotImplementedError
-
-    def cos_(self):
-        raise NotImplementedError
-
-    def count_nonzero(self, dim=None):
-        raise NotImplementedError
-
-    def cov(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def cpu(self, memory_format=None):
-        raise NotImplementedError
-
-    def cross(self, other, dim=None):
-        raise NotImplementedError
-
-    def crow_indices(self):
-        raise NotImplementedError
-
-    def cuda(self, device=None, non_blocking=False, memory_format=None):
-        raise NotImplementedError
-
-    def cummax(self, dim):
-        raise NotImplementedError
-
-    def cummin(self, dim):
-        raise NotImplementedError
-
-    def cumprod(self, dim, dtype=None):
-        raise NotImplementedError
-
-    def cumprod_(self, dim, dtype=None):
-        raise NotImplementedError
-
-    def cumsum(self, dim, dtype=None):
-        raise NotImplementedError
-
-    def cumsum_(self, dim, dtype=None):
-        raise NotImplementedError
-
-    def data_ptr(self):
-
-        return 0
-
-    def deg2rad(self):
-        raise NotImplementedError
-
-    def deg2rad_(self):
-        raise NotImplementedError
-
-    def dense_dim(self):
-
-        return 0
-
-    def dequantize(self):
-        raise NotImplementedError
-
-    def det(self):
-        raise NotImplementedError
-
-    def detach(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def detach_(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def diag(self, diagonal=0):
-        raise NotImplementedError
-
-    def diagflat(self, offset=0):
-        raise NotImplementedError
-
-    def diagonal(self, offset=0, dim1=0, dim2=1):
-        raise NotImplementedError
-
-    def diagonal_scatter(self, src, offset=0, dim1=0, dim2=1):
-        raise NotImplementedError
-
-    def diag_embed(self, offset=0, dim1=-2, dim2=-1):
-        raise NotImplementedError
-
-    def diff(self, n=1, dim=-1, prepend=None, append=None):
-        raise NotImplementedError
-
-    def digamma(self):
-        raise NotImplementedError
-
-    def digamma_(self):
-        raise NotImplementedError
-
-    def dim(self):
-
-        return 0
-
-    def dist(self, other, p=2):
-        raise NotImplementedError
-
-    def div(self, value, *args, **kwargs):
-        raise NotImplementedError
-
-    def divide(self, value, *args, **kwargs):
-        raise NotImplementedError
-
-    def divide_(self, value, *args, **kwargs):
-        raise NotImplementedError
-
-    def div_(self, value, *args, **kwargs):
-        raise NotImplementedError
-
-    def dot(self, other):
-        raise NotImplementedError
-
-    def double(self, memory_format=None):
-        raise NotImplementedError
-
-    def dsplit(self, split_size_or_sections):
-        raise NotImplementedError
-
-    def element_size(self):
-
-        return 0
-
-    def eq(self, other):
-        raise NotImplementedError
-
-    def equal(self, other):
-
-        return False
-
-    def eq_(self, other):
-        raise NotImplementedError
-
-    def erf(self):
-        raise NotImplementedError
-
-    def erfc(self):
-        raise NotImplementedError
-
-    def erfc_(self):
-        raise NotImplementedError
-
-    def erfinv(self):
-        raise NotImplementedError
-
-    def erfinv_(self):
-        raise NotImplementedError
-
-    def erf_(self):
-        raise NotImplementedError
-
-    def exp(self):
-        raise NotImplementedError
-
-    def exp2(self):
-        raise NotImplementedError
-
-    def exp2_(self):
-        raise NotImplementedError
-
-    def expand(self, *sizes):
-        raise NotImplementedError
-
-    def expand_as(self, other):
-        raise NotImplementedError
-
-    def expm1(self):
-        raise NotImplementedError
-
-    def expm1_(self):
-        raise NotImplementedError
-
-    def exponential_(self, lambd=1, *args, **kwargs):
-        raise NotImplementedError
-
-    def exp_(self):
-        raise NotImplementedError
-
-    def fill_(self, value):
-        raise NotImplementedError
-
-    def fill_diagonal_(self, fill_value, wrap=False):
-        raise NotImplementedError
-
-    def fix(self):
-        raise NotImplementedError
-
-    def fix_(self):
-        raise NotImplementedError
-
-    def flatten(self, start_dim=0, end_dim=-1):
-        raise NotImplementedError
-
-    def flip(self, dims):
-        raise NotImplementedError
-
-    def fliplr(self):
-        raise NotImplementedError
-
-    def flipud(self):
-        raise NotImplementedError
-
-    def float(self, memory_format=None):
-        raise NotImplementedError
-
-    def float_power(self, exponent):
-        raise NotImplementedError
-
-    def float_power_(self, exponent):
-        raise NotImplementedError
-
-    def floor(self):
-        raise NotImplementedError
-
-    def floor_(self):
-        raise NotImplementedError
-
-    def floor_divide(self, value):
-        raise NotImplementedError
-
-    def floor_divide_(self, value):
-        raise NotImplementedError
-
-    def fmax(self, other):
-        raise NotImplementedError
-
-    def fmin(self, other):
-        raise NotImplementedError
-
-    def fmod(self, divisor):
-        raise NotImplementedError
-
-    def fmod_(self, divisor):
-        raise NotImplementedError
-
-    def frac(self):
-        raise NotImplementedError
-
-    def frac_(self):
-        raise NotImplementedError
-
-    def frexp(self, input):
-        raise NotImplementedError
-
-    def gather(self, dim, index):
-        raise NotImplementedError
-
-    def gcd(self, other):
-        raise NotImplementedError
-
-    def gcd_(self, other):
-        raise NotImplementedError
-
-    def ge(self, other):
-        raise NotImplementedError
-
-    def geometric_(self, p, *args, **kwargs):
-        raise NotImplementedError
-
-    def geqrf(self):
-        raise NotImplementedError
-
-    def ger(self, vec2):
-        raise NotImplementedError
-
-    def get_device(self):
-        raise NotImplementedError
-
-    def ge_(self, other):
-        raise NotImplementedError
-
-    def greater(self, other):
-        raise NotImplementedError
-
-    def greater_(self, other):
-        raise NotImplementedError
-
-    def greater_equal(self, other):
-        raise NotImplementedError
-
-    def greater_equal_(self, other):
-        raise NotImplementedError
-
-    def gt(self, other):
-        raise NotImplementedError
-
-    def gt_(self, other):
-        raise NotImplementedError
-
-    def half(self, memory_format=None):
-        raise NotImplementedError
-
-    def hardshrink(self, lambd=0.5):
-        raise NotImplementedError
-
-    def has_names(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def heaviside(self, values):
-        raise NotImplementedError
-
-    def heaviside_(self, values):
-        raise NotImplementedError
-
-    def histc(self, bins=100, min=0, max=0):
-        raise NotImplementedError
-
-    def histogram(self, input, bins, *args, **kwargs):
-        raise NotImplementedError
-
-    def hsplit(self, split_size_or_sections):
-        raise NotImplementedError
-
-    def hypot(self, other):
-        raise NotImplementedError
-
-    def hypot_(self, other):
-        raise NotImplementedError
-
-    def i0(self):
-        raise NotImplementedError
-
-    def i0_(self):
-        raise NotImplementedError
-
-    def igamma(self, other):
-        raise NotImplementedError
-
-    def igammac(self, other):
-        raise NotImplementedError
-
-    def igammac_(self, other):
-        raise NotImplementedError
-
-    def igamma_(self, other):
-        raise NotImplementedError
-
-    def index_add(self, dim, index, source, *args, **kwargs):
-        raise NotImplementedError
-
-    def index_add_(self, dim, index, source, *args, **kwargs):
-        raise NotImplementedError
-
-    def index_copy(self, dim, index, tensor2):
-        raise NotImplementedError
-
-    def index_copy_(self, dim, index, tensor):
-        raise NotImplementedError
-
-    def index_fill(self, dim, index, value):
-        raise NotImplementedError
-
-    def index_fill_(self, dim, index, value):
-        raise NotImplementedError
-
-    def index_put(self, indices, values, accumulate=False):
-        raise NotImplementedError
-
-    def index_put_(self, indices, values, accumulate=False):
-        raise NotImplementedError
-
-    def index_reduce(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def index_reduce_(self, dim, index, source, reduce, *args, **kwargs):
-        raise NotImplementedError
-
-    def index_select(self, dim, index):
-        raise NotImplementedError
-
-    def indices(self):
-        raise NotImplementedError
-
-    def inner(self, other):
-        raise NotImplementedError
-
-    def int(self, memory_format=None):
-        raise NotImplementedError
-
-    def int_repr(self):
-        raise NotImplementedError
-
-    def inverse(self):
-        raise NotImplementedError
-
-    def ipu(self, device=None, non_blocking=False, memory_format=None):
-        raise NotImplementedError
-
-    def isclose(self, other, rtol=1, *args, **kwargs):
-        raise NotImplementedError
-
-    def isfinite(self):
-        raise NotImplementedError
-
-    def isinf(self):
-        raise NotImplementedError
-
-    def isnan(self):
-        raise NotImplementedError
-
-    def isneginf(self):
-        raise NotImplementedError
-
-    def isposinf(self):
-        raise NotImplementedError
-
-    def isreal(self):
-        raise NotImplementedError
+    @dispatch
+    def all(
+        self: Tensor, dim: Union[str, ellipsis, None], keepdim: bool = False
+    ) -> Tensor:
+        raise NotImplementedError("all")
+
+    def allclose(
+        self: Tensor,
+        other: Tensor,
+        rtol: float = 1e-05,
+        atol: float = 1e-08,
+        equal_nan: bool = False,
+    ) -> bool:
+        raise NotImplementedError("allclose")
+
+    def amax(self: Tensor, dim: Union[int, Size] = (), keepdim: bool = False) -> Tensor:
+        return pi.amax(self, dim, keepdim)
+
+    def amin(self: Tensor, dim: Union[int, Size] = (), keepdim: bool = False) -> Tensor:
+        raise NotImplementedError("amin")
+
+    def aminmax(
+        self: Tensor, *, dim: Optional[int] = None, keepdim: bool = False
+    ) -> ComplexReturnType("aminmax"):
+        raise NotImplementedError("aminmax")
+
+    def angle(self: Tensor) -> Tensor:
+        raise NotImplementedError("angle")
+
+    @dispatch
+    def any(self: Tensor) -> Tensor:
+        return pi.any(self)
+
+    @dispatch
+    def any(self: Tensor, dim: int, keepdim: bool = False) -> Tensor:
+        return pi.any(self, dim, keepdim)
+
+    @dispatch
+    def any(
+        self: Tensor, dim: Union[str, ellipsis, None], keepdim: bool = False
+    ) -> Tensor:
+        raise NotImplementedError("any")
+
+    def apply_(self: Tensor, callable: Callable) -> Tensor:
+        raise NotImplementedError("apply_")
+
+    def arccos(self: Tensor) -> Tensor:
+        raise NotImplementedError("arccos")
+
+    def arccos_(self: Tensor) -> Tensor:
+        raise NotImplementedError("arccos_")
+
+    def arccosh(self: Tensor) -> Tensor:
+        raise NotImplementedError("arccosh")
+
+    def arccosh_(self: Tensor) -> Tensor:
+        raise NotImplementedError("arccosh_")
+
+    def arcsin(self: Tensor) -> Tensor:
+        raise NotImplementedError("arcsin")
+
+    def arcsin_(self: Tensor) -> Tensor:
+        raise NotImplementedError("arcsin_")
+
+    def arcsinh(self: Tensor) -> Tensor:
+        raise NotImplementedError("arcsinh")
+
+    def arcsinh_(self: Tensor) -> Tensor:
+        raise NotImplementedError("arcsinh_")
+
+    def arctan(self: Tensor) -> Tensor:
+        raise NotImplementedError("arctan")
+
+    def arctan2(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("arctan2")
+
+    def arctan2_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("arctan2_")
+
+    def arctan_(self: Tensor) -> Tensor:
+        raise NotImplementedError("arctan_")
+
+    def arctanh(self: Tensor) -> Tensor:
+        raise NotImplementedError("arctanh")
+
+    def arctanh_(self: Tensor) -> Tensor:
+        raise NotImplementedError("arctanh_")
+
+    def argmax(
+        self: Tensor, dim: Optional[int] = None, keepdim: bool = False
+    ) -> Tensor:
+        return pi.argmax(self, dim, keepdim)
+
+    def argmin(
+        self: Tensor, dim: Optional[int] = None, keepdim: bool = False
+    ) -> Tensor:
+        raise NotImplementedError("argmin")
+
+    @dispatch
+    def argsort(
+        self: Tensor, *, stable: bool, dim: int = -1, descending: bool = False
+    ) -> Tensor:
+        raise NotImplementedError("argsort")
+
+    @dispatch
+    def argsort(self: Tensor, dim: int = -1, descending: bool = False) -> Tensor:
+        raise NotImplementedError("argsort")
+
+    @dispatch
+    def argsort(
+        self: Tensor, dim: Union[str, ellipsis, None], descending: bool = False
+    ) -> Tensor:
+        raise NotImplementedError("argsort")
+
+    def argwhere(self: Tensor) -> Tensor:
+        raise NotImplementedError("argwhere")
+
+    def as_strided(
+        self: Tensor,
+        size: List[int],
+        stride: List[int],
+        storage_offset: Optional[int] = None,
+    ) -> Tensor:
+        raise NotImplementedError("as_strided")
+
+    def as_strided_(
+        self: Tensor,
+        size: List[int],
+        stride: List[int],
+        storage_offset: Optional[int] = None,
+    ) -> Tensor:
+        raise NotImplementedError("as_strided_")
+
+    def as_strided_scatter(
+        self: Tensor,
+        src: Tensor,
+        size: List[int],
+        stride: List[int],
+        storage_offset: Optional[int] = None,
+    ) -> Tensor:
+        return pi.as_strided_scatter(self, src, size, stride, storage_offset)
+
+    def asin(self: Tensor) -> Tensor:
+        raise NotImplementedError("asin")
+
+    def asin_(self: Tensor) -> Tensor:
+        raise NotImplementedError("asin_")
+
+    def asinh(self: Tensor) -> Tensor:
+        raise NotImplementedError("asinh")
+
+    def asinh_(self: Tensor) -> Tensor:
+        raise NotImplementedError("asinh_")
+
+    def atan(self: Tensor) -> Tensor:
+        raise NotImplementedError("atan")
+
+    def atan2(self: Tensor, other: Tensor) -> Tensor:
+        return pi.atan2(self, other)
+
+    def atan2_(self: Tensor, other: Tensor) -> Tensor:
+        return pi.atan2_(self, other)
+
+    def atan_(self: Tensor) -> Tensor:
+        raise NotImplementedError("atan_")
+
+    def atanh(self: Tensor) -> Tensor:
+        raise NotImplementedError("atanh")
+
+    def atanh_(self: Tensor) -> Tensor:
+        raise NotImplementedError("atanh_")
+
+    def baddbmm(
+        self: Tensor,
+        batch1: Tensor,
+        batch2: Tensor,
+        *,
+        beta: Number = 1,
+        alpha: Number = 1,
+    ) -> Tensor:
+        return pi.baddbmm(self, batch1, batch2, beta, alpha)
+
+    def baddbmm_(
+        self: Tensor,
+        batch1: Tensor,
+        batch2: Tensor,
+        *,
+        beta: Number = 1,
+        alpha: Number = 1,
+    ) -> Tensor:
+        return pi.baddbmm_(self, batch1, batch2, beta, alpha)
+
+    @dispatch
+    def bernoulli(self: Tensor, *, generator: Optional[Generator] = None) -> Tensor:
+        raise NotImplementedError("bernoulli")
+
+    @dispatch
+    def bernoulli(
+        self: Tensor, p: float, *, generator: Optional[Generator] = None
+    ) -> Tensor:
+        return pi.bernoulli(self, p, generator)
+
+    @dispatch
+    def bernoulli_(
+        self: Tensor, p: Tensor, *, generator: Optional[Generator] = None
+    ) -> Tensor:
+        return pi.bernoulli_(self, p, generator)
+
+    @dispatch
+    def bernoulli_(
+        self: Tensor, p: float = 0.5, *, generator: Optional[Generator] = None
+    ) -> Tensor:
+        return pi.bernoulli_(self, p, generator)
+
+    def bfloat16(self: Tensor) -> Tensor:
+        raise NotImplementedError("bfloat16")
+
+    def bincount(
+        self: Tensor, weights: Optional[Tensor] = None, minlength: int = 0
+    ) -> Tensor:
+        return pi.bincount(self, weights, minlength)
+
+    @dispatch
+    def bitwise_and(self: Tensor, other: Tensor) -> Tensor:
+        return pi.bitwise_and(self, other)
+
+    @dispatch
+    def bitwise_and(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("bitwise_and")
+
+    @dispatch
+    def bitwise_and_(self: Tensor, other: Tensor) -> Tensor:
+        return pi.bitwise_and_(self, other)
+
+    @dispatch
+    def bitwise_and_(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("bitwise_and_")
+
+    @dispatch
+    def bitwise_left_shift(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("bitwise_left_shift")
+
+    @dispatch
+    def bitwise_left_shift(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("bitwise_left_shift")
+
+    @dispatch
+    def bitwise_left_shift_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("bitwise_left_shift_")
+
+    @dispatch
+    def bitwise_left_shift_(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("bitwise_left_shift_")
+
+    def bitwise_not(self: Tensor) -> Tensor:
+        return pi.bitwise_not(self)
+
+    def bitwise_not_(self: Tensor) -> Tensor:
+        return pi.bitwise_not_(self)
+
+    @dispatch
+    def bitwise_or(self: Tensor, other: Tensor) -> Tensor:
+        return pi.bitwise_or(self, other)
+
+    @dispatch
+    def bitwise_or(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("bitwise_or")
+
+    @dispatch
+    def bitwise_or_(self: Tensor, other: Tensor) -> Tensor:
+        return pi.bitwise_or_(self, other)
+
+    @dispatch
+    def bitwise_or_(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("bitwise_or_")
+
+    @dispatch
+    def bitwise_right_shift(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("bitwise_right_shift")
+
+    @dispatch
+    def bitwise_right_shift(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("bitwise_right_shift")
+
+    @dispatch
+    def bitwise_right_shift_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("bitwise_right_shift_")
+
+    @dispatch
+    def bitwise_right_shift_(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("bitwise_right_shift_")
+
+    @dispatch
+    def bitwise_xor(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("bitwise_xor")
+
+    @dispatch
+    def bitwise_xor(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("bitwise_xor")
+
+    @dispatch
+    def bitwise_xor_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("bitwise_xor_")
+
+    @dispatch
+    def bitwise_xor_(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("bitwise_xor_")
+
+    def bmm(self: Tensor, mat2: Tensor) -> Tensor:
+        return pi.bmm(self, mat2)
+
+    def bool(self: Tensor) -> Tensor:
+        raise NotImplementedError("bool")
+
+    @dispatch
+    def broadcast_to(self: Tensor, size: List[int]) -> Tensor:
+        return pi.broadcast_to(self, size)
+
+    @dispatch
+    def broadcast_to(self: Tensor, *size: int) -> Tensor:
+        return pi.broadcast_to(self, *size)
+
+    def byte(self: Tensor) -> Tensor:
+        raise NotImplementedError("byte")
+
+    def cauchy_(
+        self: Tensor,
+        median: float = 0,
+        sigma: float = 1,
+        *,
+        generator: Optional[Generator] = None,
+    ) -> Tensor:
+        raise NotImplementedError("cauchy_")
+
+    def ccol_indices(self: Tensor) -> Tensor:
+        raise NotImplementedError("ccol_indices")
+
+    def ceil(self: Tensor) -> Tensor:
+        return pi.ceil(self)
+
+    def ceil_(self: Tensor) -> Tensor:
+        return pi.ceil_(self)
+
+    def chalf(self: Tensor, *, memory_format: Optional[memory_format] = None) -> Tensor:
+        raise NotImplementedError("chalf")
+
+    def char(self: Tensor) -> Tensor:
+        raise NotImplementedError("char")
+
+    def cholesky(self: Tensor, upper: bool = False) -> Tensor:
+        raise NotImplementedError("cholesky")
+
+    def cholesky_inverse(self: Tensor, upper: bool = False) -> Tensor:
+        raise NotImplementedError("cholesky_inverse")
+
+    def cholesky_solve(self: Tensor, input2: Tensor, upper: bool = False) -> Tensor:
+        raise NotImplementedError("cholesky_solve")
+
+    def chunk(self: Tensor, chunks: int, dim: int = 0) -> List[Tensor]:
+        raise NotImplementedError("chunk")
+
+    @dispatch
+    def clamp(
+        self: Tensor, min: Optional[Tensor] = None, max: Optional[Tensor] = None
+    ) -> Tensor:
+        return pi.clamp(self, min, max)
+
+    @dispatch
+    def clamp(
+        self: Tensor, min: Optional[Number] = None, max: Optional[Number] = None
+    ) -> Tensor:
+        return pi.clamp(self, min, max)
+
+    @dispatch
+    def clamp_(
+        self: Tensor, min: Optional[Tensor] = None, max: Optional[Tensor] = None
+    ) -> Tensor:
+        return pi.clamp_(self, min, max)
+
+    @dispatch
+    def clamp_(
+        self: Tensor, min: Optional[Number] = None, max: Optional[Number] = None
+    ) -> Tensor:
+        return pi.clamp_(self, min, max)
+
+    @dispatch
+    def clamp_max(self: Tensor, max: Tensor) -> Tensor:
+        raise NotImplementedError("clamp_max")
+
+    @dispatch
+    def clamp_max(self: Tensor, max: Number) -> Tensor:
+        return pi.clamp_max(self, max)
+
+    @dispatch
+    def clamp_max_(self: Tensor, max: Tensor) -> Tensor:
+        raise NotImplementedError("clamp_max_")
+
+    @dispatch
+    def clamp_max_(self: Tensor, max: Number) -> Tensor:
+        return pi.clamp_max_(self, max)
+
+    @dispatch
+    def clamp_min(self: Tensor, min: Tensor) -> Tensor:
+        raise NotImplementedError("clamp_min")
+
+    @dispatch
+    def clamp_min(self: Tensor, min: Number) -> Tensor:
+        return pi.clamp_min(self, min)
+
+    @dispatch
+    def clamp_min_(self: Tensor, min: Tensor) -> Tensor:
+        raise NotImplementedError("clamp_min_")
+
+    @dispatch
+    def clamp_min_(self: Tensor, min: Number) -> Tensor:
+        return pi.clamp_min_(self, min)
+
+    @dispatch
+    def clip(
+        self: Tensor, min: Optional[Tensor] = None, max: Optional[Tensor] = None
+    ) -> Tensor:
+        raise NotImplementedError("clip")
+
+    @dispatch
+    def clip(
+        self: Tensor, min: Optional[Number] = None, max: Optional[Number] = None
+    ) -> Tensor:
+        raise NotImplementedError("clip")
+
+    @dispatch
+    def clip_(
+        self: Tensor, min: Optional[Tensor] = None, max: Optional[Tensor] = None
+    ) -> Tensor:
+        raise NotImplementedError("clip_")
+
+    @dispatch
+    def clip_(
+        self: Tensor, min: Optional[Number] = None, max: Optional[Number] = None
+    ) -> Tensor:
+        raise NotImplementedError("clip_")
+
+    def clone(self: Tensor, *, memory_format: Optional[memory_format] = None) -> Tensor:
+        return pi.clone(self, memory_format)
+
+    def coalesce(self: Tensor) -> Tensor:
+        raise NotImplementedError("coalesce")
+
+    def col_indices(self: Tensor) -> Tensor:
+        raise NotImplementedError("col_indices")
+
+    def conj(self: Tensor) -> Tensor:
+        raise NotImplementedError("conj")
+
+    def conj_physical(self: Tensor) -> Tensor:
+        raise NotImplementedError("conj_physical")
+
+    def conj_physical_(self: Tensor) -> Tensor:
+        raise NotImplementedError("conj_physical_")
+
+    def contiguous(self: Tensor, memory_format=contiguous_format) -> Tensor:
+        return pi.contiguous(self, memory_format)
+
+    def copy_(self: Tensor, src: Tensor, non_blocking: bool = False) -> Tensor:
+        return pi.copy_(self, src, non_blocking)
+
+    @dispatch
+    def copysign(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("copysign")
+
+    @dispatch
+    def copysign(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("copysign")
+
+    @dispatch
+    def copysign_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("copysign_")
+
+    @dispatch
+    def copysign_(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("copysign_")
+
+    def corrcoef(self: Tensor) -> Tensor:
+        raise NotImplementedError("corrcoef")
+
+    def cos(self: Tensor) -> Tensor:
+        return pi.cos(self)
+
+    def cos_(self: Tensor) -> Tensor:
+        return pi.cos_(self)
+
+    def cosh(self: Tensor) -> Tensor:
+        raise NotImplementedError("cosh")
+
+    def cosh_(self: Tensor) -> Tensor:
+        raise NotImplementedError("cosh_")
+
+    @dispatch
+    def count_nonzero(self: Tensor, dim: Optional[int] = None) -> Tensor:
+        raise NotImplementedError("count_nonzero")
+
+    @dispatch
+    def count_nonzero(self: Tensor, dim: Size) -> Tensor:
+        raise NotImplementedError("count_nonzero")
+
+    @dispatch
+    def count_nonzero(self: Tensor, *dim: int) -> Tensor:
+        raise NotImplementedError("count_nonzero")
+
+    def cov(
+        self: Tensor,
+        *,
+        correction: int = 1,
+        fweights: Optional[Tensor] = None,
+        aweights: Optional[Tensor] = None,
+    ) -> Tensor:
+        raise NotImplementedError("cov")
+
+    def cpu(self: Tensor) -> Tensor:
+        raise NotImplementedError("cpu")
+
+    def cross(self: Tensor, other: Tensor, dim: Optional[int] = None) -> Tensor:
+        raise NotImplementedError("cross")
+
+    def crow_indices(self: Tensor) -> Tensor:
+        raise NotImplementedError("crow_indices")
+
+    def cuda(
+        self: Tensor,
+        device: Optional[Union[device, int, str]] = None,
+        non_blocking: bool = False,
+    ) -> Tensor:
+        raise NotImplementedError("cuda")
+
+    @dispatch
+    def cummax(self: Tensor, dim: int) -> ComplexReturnType("cummax"):
+        raise NotImplementedError("cummax")
+
+    @dispatch
+    def cummax(
+        self: Tensor, dim: Union[str, ellipsis, None]
+    ) -> ComplexReturnType("cummax"):
+        raise NotImplementedError("cummax")
+
+    @dispatch
+    def cummin(self: Tensor, dim: int) -> ComplexReturnType("cummin"):
+        raise NotImplementedError("cummin")
+
+    @dispatch
+    def cummin(
+        self: Tensor, dim: Union[str, ellipsis, None]
+    ) -> ComplexReturnType("cummin"):
+        raise NotImplementedError("cummin")
+
+    @dispatch
+    def cumprod(self: Tensor, dim: int, *, dtype: Optional[pi_dtype] = None) -> Tensor:
+        raise NotImplementedError("cumprod")
+
+    @dispatch
+    def cumprod(
+        self: Tensor,
+        dim: Union[str, ellipsis, None],
+        *,
+        dtype: Optional[pi_dtype] = None,
+    ) -> Tensor:
+        raise NotImplementedError("cumprod")
+
+    @dispatch
+    def cumprod_(self: Tensor, dim: int, *, dtype: Optional[pi_dtype] = None) -> Tensor:
+        raise NotImplementedError("cumprod_")
+
+    @dispatch
+    def cumprod_(
+        self: Tensor,
+        dim: Union[str, ellipsis, None],
+        *,
+        dtype: Optional[pi_dtype] = None,
+    ) -> Tensor:
+        raise NotImplementedError("cumprod_")
+
+    @dispatch
+    def cumsum(self: Tensor, dim: int, *, dtype: Optional[pi_dtype] = None) -> Tensor:
+        return pi.cumsum(self, dim, dtype)
+
+    @dispatch
+    def cumsum(
+        self: Tensor,
+        dim: Union[str, ellipsis, None],
+        *,
+        dtype: Optional[pi_dtype] = None,
+    ) -> Tensor:
+        raise NotImplementedError("cumsum")
+
+    @dispatch
+    def cumsum_(self: Tensor, dim: int, *, dtype: Optional[pi_dtype] = None) -> Tensor:
+        raise NotImplementedError("cumsum_")
+
+    @dispatch
+    def cumsum_(
+        self: Tensor,
+        dim: Union[str, ellipsis, None],
+        *,
+        dtype: Optional[pi_dtype] = None,
+    ) -> Tensor:
+        raise NotImplementedError("cumsum_")
+
+    def data_ptr(self: Tensor) -> int:
+        raise NotImplementedError("data_ptr")
+
+    def deg2rad(self: Tensor) -> Tensor:
+        raise NotImplementedError("deg2rad")
+
+    def deg2rad_(self: Tensor) -> Tensor:
+        raise NotImplementedError("deg2rad_")
+
+    def dense_dim(self: Tensor) -> int:
+        raise NotImplementedError("dense_dim")
+
+    def dequantize(self: Tensor) -> Tensor:
+        raise NotImplementedError("dequantize")
+
+    def det(self: Tensor) -> Tensor:
+        raise NotImplementedError("det")
+
+    def detach(self: Tensor) -> Tensor:
+        raise NotImplementedError("detach")
+
+    def detach_(self: Tensor) -> Tensor:
+        raise NotImplementedError("detach_")
+
+    def diag(self: Tensor, diagonal: int = 0) -> Tensor:
+        raise NotImplementedError("diag")
+
+    def diag_embed(
+        self: Tensor, offset: int = 0, dim1: int = -2, dim2: int = -1
+    ) -> Tensor:
+        raise NotImplementedError("diag_embed")
+
+    def diagflat(self: Tensor, offset: int = 0) -> Tensor:
+        raise NotImplementedError("diagflat")
+
+    @dispatch
+    def diagonal(
+        self: Tensor,
+        *,
+        outdim: Union[str, ellipsis, None],
+        dim1: Union[str, ellipsis, None],
+        dim2: Union[str, ellipsis, None],
+        offset: int = 0,
+    ) -> Tensor:
+        raise NotImplementedError("diagonal")
+
+    @dispatch
+    def diagonal(self: Tensor, offset: int = 0, dim1: int = 0, dim2: int = 1) -> Tensor:
+        raise NotImplementedError("diagonal")
+
+    def diagonal_scatter(
+        self: Tensor, src: Tensor, offset: int = 0, dim1: int = 0, dim2: int = 1
+    ) -> Tensor:
+        return pi.diagonal_scatter(self, src, offset, dim1, dim2)
+
+    def diff(
+        self: Tensor,
+        n: int = 1,
+        dim: int = -1,
+        prepend: Optional[Tensor] = None,
+        append: Optional[Tensor] = None,
+    ) -> Tensor:
+        raise NotImplementedError("diff")
+
+    def digamma(self: Tensor) -> Tensor:
+        raise NotImplementedError("digamma")
+
+    def digamma_(self: Tensor) -> Tensor:
+        raise NotImplementedError("digamma_")
+
+    def dim(self: Tensor) -> int:
+        return pi.dim(self)
+
+    def dist(self: Tensor, other: Tensor, p: Number = 2) -> Tensor:
+        raise NotImplementedError("dist")
+
+    def div(
+        self: Tensor,
+        other: Union[Tensor, Number],
+        *,
+        rounding_mode: Optional[str] = None,
+    ) -> Tensor:
+        return pi.div(self, other, rounding_mode)
+
+    def div_(
+        self: Tensor,
+        other: Union[Tensor, Number],
+        *,
+        rounding_mode: Optional[str] = None,
+    ) -> Tensor:
+        return pi.div_(self, other, rounding_mode)
+
+    @dispatch
+    def divide(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("divide")
+
+    @dispatch
+    def divide(self: Tensor, other: Tensor, *, rounding_mode: Optional[str]) -> Tensor:
+        raise NotImplementedError("divide")
+
+    @dispatch
+    def divide(self: Tensor, other: Number, *, rounding_mode: Optional[str]) -> Tensor:
+        raise NotImplementedError("divide")
+
+    @dispatch
+    def divide(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("divide")
+
+    @dispatch
+    def divide_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("divide_")
+
+    @dispatch
+    def divide_(self: Tensor, other: Tensor, *, rounding_mode: Optional[str]) -> Tensor:
+        raise NotImplementedError("divide_")
+
+    @dispatch
+    def divide_(self: Tensor, other: Number, *, rounding_mode: Optional[str]) -> Tensor:
+        raise NotImplementedError("divide_")
+
+    @dispatch
+    def divide_(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("divide_")
+
+    def dot(self: Tensor, tensor: Tensor) -> Tensor:
+        raise NotImplementedError("dot")
+
+    def double(self: Tensor) -> Tensor:
+        return torch_cast(self, pi_dtype.float64)
+
+    @dispatch
+    def dsplit(self: Tensor, sections: int) -> List[Tensor]:
+        raise NotImplementedError("dsplit")
+
+    @dispatch
+    def dsplit(self: Tensor, indices: Size) -> List[Tensor]:
+        raise NotImplementedError("dsplit")
+
+    @dispatch
+    def dsplit(self: Tensor, *indices: int) -> List[Tensor]:
+        raise NotImplementedError("dsplit")
+
+    def element_size(self: Tensor) -> int:
+        raise NotImplementedError("element_size")
+
+    @dispatch
+    def eq(self: Tensor, other: Tensor) -> Tensor:
+        return pi.eq(self, other)
+
+    @dispatch
+    def eq(self: Tensor, other: Number) -> Tensor:
+        return pi.eq(self, other)
+
+    @dispatch
+    def eq_(self: Tensor, other: Tensor) -> Tensor:
+        return pi.eq_(self, other)
+
+    @dispatch
+    def eq_(self: Tensor, other: Number) -> Tensor:
+        return pi.eq_(self, other)
+
+    def equal(self: Tensor, other: Tensor) -> bool:
+        raise NotImplementedError("equal")
+
+    def erf(self: Tensor) -> Tensor:
+        return pi.erf(self)
+
+    def erf_(self: Tensor) -> Tensor:
+        return pi.erf_(self)
+
+    def erfc(self: Tensor) -> Tensor:
+        raise NotImplementedError("erfc")
+
+    def erfc_(self: Tensor) -> Tensor:
+        raise NotImplementedError("erfc_")
+
+    def erfinv(self: Tensor) -> Tensor:
+        raise NotImplementedError("erfinv")
+
+    def erfinv_(self: Tensor) -> Tensor:
+        raise NotImplementedError("erfinv_")
+
+    def exp(self: Tensor) -> Tensor:
+        return pi.exp(self)
+
+    def exp2(self: Tensor) -> Tensor:
+        raise NotImplementedError("exp2")
+
+    def exp2_(self: Tensor) -> Tensor:
+        raise NotImplementedError("exp2_")
+
+    def exp_(self: Tensor) -> Tensor:
+        return pi.exp_(self)
+
+    @dispatch
+    def expand(self: Tensor, size: List[int], *, implicit: bool = False) -> Tensor:
+        return pi.expand(self, size, implicit)
+
+    @dispatch
+    def expand(self: Tensor, *size: int, implicit: bool = False) -> Tensor:
+        raise NotImplementedError("expand")
+
+    def expand_as(self: Tensor, other: Tensor) -> Tensor:
+        return pi.expand_as(self, other)
+
+    def expm1(self: Tensor) -> Tensor:
+        return pi.expm1(self)
+
+    def expm1_(self: Tensor) -> Tensor:
+        return pi.expm1_(self)
+
+    def exponential_(
+        self: Tensor, lambd: float = 1, *, generator: Optional[Generator] = None
+    ) -> Tensor:
+        raise NotImplementedError("exponential_")
+
+    @dispatch
+    def fill_(self: Tensor, value: Tensor) -> Tensor:
+        return pi.fill_(self, value)
+
+    @dispatch
+    def fill_(self: Tensor, value: Number) -> Tensor:
+        return pi.fill_(self, value)
+
+    def fill_diagonal_(self: Tensor, fill_value: Number, wrap: bool = False) -> Tensor:
+        raise NotImplementedError("fill_diagonal_")
+
+    def fix(self: Tensor) -> Tensor:
+        raise NotImplementedError("fix")
+
+    def fix_(self: Tensor) -> Tensor:
+        raise NotImplementedError("fix_")
+
+    @dispatch
+    def flatten(self: Tensor, start_dim: int = 0, end_dim: int = -1) -> Tensor:
+        return pi.flatten(self, start_dim, end_dim)
+
+    @dispatch
+    def flatten(
+        self: Tensor, start_dim: int, end_dim: int, out_dim: Union[str, ellipsis, None]
+    ) -> Tensor:
+        raise NotImplementedError("flatten")
+
+    @dispatch
+    def flatten(
+        self: Tensor,
+        start_dim: Union[str, ellipsis, None],
+        end_dim: Union[str, ellipsis, None],
+        out_dim: Union[str, ellipsis, None],
+    ) -> Tensor:
+        raise NotImplementedError("flatten")
+
+    @dispatch
+    def flatten(
+        self: Tensor,
+        dims: Sequence[Union[str, ellipsis, None]],
+        out_dim: Union[str, ellipsis, None],
+    ) -> Tensor:
+        raise NotImplementedError("flatten")
+
+    @dispatch
+    def flip(self: Tensor, dims: Size) -> Tensor:
+        return pi.flip(self, dims)
+
+    @dispatch
+    def flip(self: Tensor, *dims: int) -> Tensor:
+        return pi.flip(self, *dims)
+
+    def fliplr(self: Tensor) -> Tensor:
+        raise NotImplementedError("fliplr")
+
+    def flipud(self: Tensor) -> Tensor:
+        raise NotImplementedError("flipud")
+
+    def float(self: Tensor) -> Tensor:
+        raise NotImplementedError("float")
+
+    @dispatch
+    def float_power(self: Tensor, exponent: Tensor) -> Tensor:
+        raise NotImplementedError("float_power")
+
+    @dispatch
+    def float_power(self: Tensor, exponent: Number) -> Tensor:
+        raise NotImplementedError("float_power")
+
+    @dispatch
+    def float_power_(self: Tensor, exponent: Tensor) -> Tensor:
+        raise NotImplementedError("float_power_")
+
+    @dispatch
+    def float_power_(self: Tensor, exponent: Number) -> Tensor:
+        raise NotImplementedError("float_power_")
+
+    def floor(self: Tensor) -> Tensor:
+        return pi.floor(self)
+
+    def floor_(self: Tensor) -> Tensor:
+        return pi.floor_(self)
+
+    def floor_divide(
+        self: Tensor, other: Union[Tensor, Number], *, out: Optional[Tensor] = None
+    ) -> Tensor:
+        if out is not None:
+            raise NotImplementedError("floor_divide.out variant")
+        return pi.floor_divide(self, other)
+
+    def floor_divide_(self: Tensor, other: Union[Tensor, Number]) -> Tensor:
+        raise NotImplementedError("floor_divide_")
+
+    def fmax(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("fmax")
+
+    def fmin(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("fmin")
+
+    @dispatch
+    def fmod(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("fmod")
+
+    @dispatch
+    def fmod(self: Tensor, other: Number) -> Tensor:
+        return pi.fmod(self, other)
+
+    @dispatch
+    def fmod_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("fmod_")
+
+    @dispatch
+    def fmod_(self: Tensor, other: Number) -> Tensor:
+        return pi.fmod_(self, other)
+
+    def frac(self: Tensor) -> Tensor:
+        raise NotImplementedError("frac")
+
+    def frac_(self: Tensor) -> Tensor:
+        raise NotImplementedError("frac_")
+
+    def frexp(self: Tensor) -> ComplexReturnType("frexp"):
+        raise NotImplementedError("frexp")
+
+    @dispatch
+    def gather(
+        self: Tensor, dim: int, index: Tensor, *, sparse_grad: bool = False
+    ) -> Tensor:
+        return pi.gather(self, dim, index, sparse_grad)
+
+    @dispatch
+    def gather(
+        self: Tensor,
+        dim: Union[str, ellipsis, None],
+        index: Tensor,
+        *,
+        sparse_grad: bool = False,
+    ) -> Tensor:
+        raise NotImplementedError("gather")
+
+    def gcd(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("gcd")
+
+    def gcd_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("gcd_")
+
+    @dispatch
+    def ge(self: Tensor, other: Tensor) -> Tensor:
+        return pi.ge(self, other)
+
+    @dispatch
+    def ge(self: Tensor, other: Number) -> Tensor:
+        return pi.ge(self, other)
+
+    @dispatch
+    def ge_(self: Tensor, other: Tensor) -> Tensor:
+        return pi.ge_(self, other)
+
+    @dispatch
+    def ge_(self: Tensor, other: Number) -> Tensor:
+        return pi.ge_(self, other)
+
+    def geometric_(
+        self: Tensor, p: float, *, generator: Optional[Generator] = None
+    ) -> Tensor:
+        raise NotImplementedError("geometric_")
+
+    def geqrf(self: Tensor) -> ComplexReturnType("geqrf"):
+        raise NotImplementedError("geqrf")
+
+    def ger(self: Tensor, vec2: Tensor) -> Tensor:
+        raise NotImplementedError("ger")
+
+    def get_device(self: Tensor) -> int:
+        raise NotImplementedError("get_device")
+
+    @dispatch
+    def greater(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("greater")
+
+    @dispatch
+    def greater(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("greater")
+
+    @dispatch
+    def greater_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("greater_")
+
+    @dispatch
+    def greater_(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("greater_")
+
+    @dispatch
+    def greater_equal(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("greater_equal")
+
+    @dispatch
+    def greater_equal(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("greater_equal")
+
+    @dispatch
+    def greater_equal_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("greater_equal_")
+
+    @dispatch
+    def greater_equal_(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("greater_equal_")
+
+    @dispatch
+    def gt(self: Tensor, other: Tensor) -> Tensor:
+        return pi.gt(self, other)
+
+    @dispatch
+    def gt(self: Tensor, other: Number) -> Tensor:
+        return pi.gt(self, other)
+
+    @dispatch
+    def gt_(self: Tensor, other: Tensor) -> Tensor:
+        return pi.gt_(self, other)
+
+    @dispatch
+    def gt_(self: Tensor, other: Number) -> Tensor:
+        return pi.gt_(self, other)
+
+    def half(self: Tensor) -> Tensor:
+        raise NotImplementedError("half")
+
+    def hardshrink(self: Tensor, lambd: Number = 0.5) -> Tensor:
+        raise NotImplementedError("hardshrink")
+
+    def has_names(self: Tensor) -> bool:
+        raise NotImplementedError("has_names")
+
+    def heaviside(self: Tensor, values: Tensor) -> Tensor:
+        raise NotImplementedError("heaviside")
+
+    def heaviside_(self: Tensor, values: Tensor) -> Tensor:
+        raise NotImplementedError("heaviside_")
+
+    def histc(
+        self: Tensor, bins: int = 100, min: Number = 0, max: Number = 0
+    ) -> Tensor:
+        raise NotImplementedError("histc")
+
+    @dispatch
+    def histogram(
+        self: Tensor,
+        bins: Tensor,
+        *,
+        weight: Optional[Tensor] = None,
+        density: bool = False,
+    ) -> ComplexReturnType("histogram"):
+        raise NotImplementedError("histogram")
+
+    @dispatch
+    def histogram(
+        self: Tensor,
+        bins: int = 100,
+        *,
+        range: Optional[Sequence[float]] = None,
+        weight: Optional[Tensor] = None,
+        density: bool = False,
+    ) -> ComplexReturnType("histogram"):
+        raise NotImplementedError("histogram")
+
+    @dispatch
+    def hsplit(self: Tensor, sections: int) -> List[Tensor]:
+        raise NotImplementedError("hsplit")
+
+    @dispatch
+    def hsplit(self: Tensor, indices: Size) -> List[Tensor]:
+        raise NotImplementedError("hsplit")
+
+    @dispatch
+    def hsplit(self: Tensor, *indices: int) -> List[Tensor]:
+        raise NotImplementedError("hsplit")
+
+    def hypot(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("hypot")
+
+    def hypot_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("hypot_")
+
+    def i0(self: Tensor) -> Tensor:
+        raise NotImplementedError("i0")
+
+    def i0_(self: Tensor) -> Tensor:
+        raise NotImplementedError("i0_")
+
+    def igamma(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("igamma")
+
+    def igamma_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("igamma_")
+
+    def igammac(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("igammac")
+
+    def igammac_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("igammac_")
+
+    @dispatch
+    def index_add(
+        self: Tensor, dim: int, index: Tensor, source: Tensor, *, alpha: Number = 1
+    ) -> Tensor:
+        raise NotImplementedError("index_add")
+
+    @dispatch
+    def index_add(
+        self: Tensor,
+        dim: Union[str, ellipsis, None],
+        index: Tensor,
+        source: Tensor,
+        *,
+        alpha: Number = 1,
+    ) -> Tensor:
+        raise NotImplementedError("index_add")
+
+    def index_add_(
+        self: Tensor, dim: int, index: Tensor, source: Tensor, *, alpha: Number = 1
+    ) -> Tensor:
+        raise NotImplementedError("index_add_")
+
+    @dispatch
+    def index_copy(self: Tensor, dim: int, index: Tensor, source: Tensor) -> Tensor:
+        raise NotImplementedError("index_copy")
+
+    @dispatch
+    def index_copy(
+        self: Tensor, dim: Union[str, ellipsis, None], index: Tensor, source: Tensor
+    ) -> Tensor:
+        raise NotImplementedError("index_copy")
+
+    @dispatch
+    def index_copy_(self: Tensor, dim: int, index: Tensor, source: Tensor) -> Tensor:
+        raise NotImplementedError("index_copy_")
+
+    @dispatch
+    def index_copy_(
+        self: Tensor, dim: Union[str, ellipsis, None], index: Tensor, source: Tensor
+    ) -> Tensor:
+        raise NotImplementedError("index_copy_")
+
+    @dispatch
+    def index_fill(self: Tensor, dim: int, index: Tensor, value: Tensor) -> Tensor:
+        raise NotImplementedError("index_fill")
+
+    @dispatch
+    def index_fill(
+        self: Tensor, dim: Union[str, ellipsis, None], index: Tensor, value: Tensor
+    ) -> Tensor:
+        raise NotImplementedError("index_fill")
+
+    @dispatch
+    def index_fill(self: Tensor, dim: int, index: Tensor, value: Number) -> Tensor:
+        raise NotImplementedError("index_fill")
+
+    @dispatch
+    def index_fill(
+        self: Tensor, dim: Union[str, ellipsis, None], index: Tensor, value: Number
+    ) -> Tensor:
+        raise NotImplementedError("index_fill")
+
+    @dispatch
+    def index_fill_(self: Tensor, dim: int, index: Tensor, value: Tensor) -> Tensor:
+        raise NotImplementedError("index_fill_")
+
+    @dispatch
+    def index_fill_(
+        self: Tensor, dim: Union[str, ellipsis, None], index: Tensor, value: Tensor
+    ) -> Tensor:
+        raise NotImplementedError("index_fill_")
+
+    @dispatch
+    def index_fill_(self: Tensor, dim: int, index: Tensor, value: Number) -> Tensor:
+        raise NotImplementedError("index_fill_")
+
+    @dispatch
+    def index_fill_(
+        self: Tensor, dim: Union[str, ellipsis, None], index: Tensor, value: Number
+    ) -> Tensor:
+        raise NotImplementedError("index_fill_")
+
+    def index_put(
+        self: Tensor,
+        indices: Optional[Union[Tuple[Tensor, ...], List[Tensor]]],
+        values: Tensor,
+        accumulate: bool = False,
+    ) -> Tensor:
+        return pi.index_put(self, indices, values, accumulate)
+
+    def index_put_(
+        self: Tensor,
+        indices: Optional[Union[Tuple[Tensor, ...], List[Tensor]]],
+        values: Tensor,
+        accumulate: bool = False,
+    ) -> Tensor:
+        return pi.index_put_(self, indices, values, accumulate)
+
+    def index_reduce(
+        self: Tensor,
+        dim: int,
+        index: Tensor,
+        source: Tensor,
+        reduce: str,
+        *,
+        include_self: bool = True,
+    ) -> Tensor:
+        raise NotImplementedError("index_reduce")
+
+    def index_reduce_(
+        self: Tensor,
+        dim: int,
+        index: Tensor,
+        source: Tensor,
+        reduce: str,
+        *,
+        include_self: bool = True,
+    ) -> Tensor:
+        raise NotImplementedError("index_reduce_")
+
+    @dispatch
+    def index_select(self: Tensor, dim: int, index: Tensor) -> Tensor:
+        return pi.index_select(self, dim, index)
+
+    @dispatch
+    def index_select(
+        self: Tensor, dim: Union[str, ellipsis, None], index: Tensor
+    ) -> Tensor:
+        raise NotImplementedError("index_select")
+
+    def indices(self: Tensor) -> Tensor:
+        raise NotImplementedError("indices")
+
+    def inner(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("inner")
+
+    def int(self: Tensor) -> Tensor:
+        raise NotImplementedError("int")
+
+    def int_repr(self: Tensor) -> Tensor:
+        raise NotImplementedError("int_repr")
+
+    def inverse(self: Tensor) -> Tensor:
+        raise NotImplementedError("inverse")
+
+    def is_coalesced(self: Tensor) -> bool:
+        raise NotImplementedError("is_coalesced")
+
+    def is_complex(self: Tensor) -> bool:
+        raise NotImplementedError("is_complex")
+
+    def is_conj(self: Tensor) -> bool:
+        raise NotImplementedError("is_conj")
+
+    def is_contiguous(self: Tensor, memory_format=contiguous_format) -> bool:
+        raise NotImplementedError("is_contiguous")
+
+    is_cuda: bool
+
+    def is_distributed(self: Tensor) -> bool:
+        raise NotImplementedError("is_distributed")
+
+    def is_floating_point(self: Tensor) -> bool:
+        return pi.is_floating_point(self)
+
+    def is_inference(self: Tensor) -> bool:
+        raise NotImplementedError("is_inference")
+
+    is_ipu: bool
+    is_leaf: bool
+    is_meta: bool
+    is_mkldnn: bool
+    is_mps: bool
+
+    def is_neg(self: Tensor) -> bool:
+        raise NotImplementedError("is_neg")
+
+    is_nested: bool
+
+    def is_nonzero(self: Tensor) -> bool:
+        raise NotImplementedError("is_nonzero")
+
+    is_ort: bool
+
+    def is_pinned(
+        self: Tensor, device: Optional[Union[device, str, None]] = None
+    ) -> bool:
+        raise NotImplementedError("is_pinned")
+
+    is_quantized: bool
+
+    def is_same_size(self: Tensor, other: Tensor) -> bool:
+        raise NotImplementedError("is_same_size")
+
+    def is_set_to(self: Tensor, tensor: Tensor) -> bool:
+        raise NotImplementedError("is_set_to")
+
+    def is_signed(self: Tensor) -> bool:
+        raise NotImplementedError("is_signed")
+
+    is_sparse: bool
+    is_sparse_csr: bool
+    is_vulkan: bool
+
+    def isclose(
+        self: Tensor,
+        other: Tensor,
+        rtol: float = 1e-05,
+        atol: float = 1e-08,
+        equal_nan: bool = False,
+    ) -> Tensor:
+        raise NotImplementedError("isclose")
+
+    def isfinite(self: Tensor) -> Tensor:
+        raise NotImplementedError("isfinite")
+
+    def isinf(self: Tensor) -> Tensor:
+        raise NotImplementedError("isinf")
+
+    def isnan(self: Tensor) -> Tensor:
+        raise NotImplementedError("isnan")
+
+    def isneginf(self: Tensor) -> Tensor:
+        raise NotImplementedError("isneginf")
+
+    def isposinf(self: Tensor) -> Tensor:
+        raise NotImplementedError("isposinf")
+
+    def isreal(self: Tensor) -> Tensor:
+        raise NotImplementedError("isreal")
 
     def istft(
-        self,
-        n_fft,
-        hop_length=None,
-        win_length=None,
-        window=None,
-        center=True,
-        normalized=False,
-        onesided=True,
-        length=None,
-    ):
-        raise NotImplementedError
+        self: Tensor,
+        n_fft: int,
+        hop_length: Optional[int] = None,
+        win_length: Optional[int] = None,
+        window: Optional[Tensor] = None,
+        center: bool = True,
+        normalized: bool = False,
+        onesided: Optional[bool] = None,
+        length: Optional[int] = None,
+        return_complex: bool = False,
+    ) -> Tensor:
+        raise NotImplementedError("istft")
+
+    def item(self: Tensor) -> Number:
+        return pi.item(self)
+
+    def kron(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("kron")
+
+    @dispatch
+    def kthvalue(
+        self: Tensor, k: int, dim: int = -1, keepdim: bool = False
+    ) -> ComplexReturnType("kthvalue"):
+        raise NotImplementedError("kthvalue")
+
+    @dispatch
+    def kthvalue(
+        self: Tensor, k: int, dim: Union[str, ellipsis, None], keepdim: bool = False
+    ) -> ComplexReturnType("kthvalue"):
+        raise NotImplementedError("kthvalue")
+
+    def lcm(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("lcm")
+
+    def lcm_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("lcm_")
 
-    def is_coalesced(self):
+    def ldexp(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("ldexp")
 
-        return False
+    def ldexp_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("ldexp_")
+
+    @dispatch
+    def le(self: Tensor, other: Tensor) -> Tensor:
+        return pi.le(self, other)
+
+    @dispatch
+    def le(self: Tensor, other: Number) -> Tensor:
+        return pi.le(self, other)
+
+    @dispatch
+    def le_(self: Tensor, other: Tensor) -> Tensor:
+        return pi.le_(self, other)
+
+    @dispatch
+    def le_(self: Tensor, other: Number) -> Tensor:
+        return pi.le_(self, other)
+
+    @dispatch
+    def lerp(self: Tensor, end: Tensor, weight: Tensor) -> Tensor:
+        return pi.lerp(self, end, weight)
+
+    @dispatch
+    def lerp(self: Tensor, end: Tensor, weight: Number) -> Tensor:
+        raise NotImplementedError("lerp")
+
+    @dispatch
+    def lerp_(self: Tensor, end: Tensor, weight: Tensor) -> Tensor:
+        return pi.lerp_(self, end, weight)
+
+    @dispatch
+    def lerp_(self: Tensor, end: Tensor, weight: Number) -> Tensor:
+        raise NotImplementedError("lerp_")
+
+    @dispatch
+    def less(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("less")
+
+    @dispatch
+    def less(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("less")
+
+    @dispatch
+    def less_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("less_")
+
+    @dispatch
+    def less_(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("less_")
+
+    @dispatch
+    def less_equal(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("less_equal")
 
-    def is_complex(self):
+    @dispatch
+    def less_equal(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("less_equal")
 
-        return False
+    @dispatch
+    def less_equal_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("less_equal_")
 
-    def is_conj(self):
+    @dispatch
+    def less_equal_(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("less_equal_")
 
-        return False
+    def lgamma(self: Tensor) -> Tensor:
+        raise NotImplementedError("lgamma")
 
-    def is_contiguous(self, memory_format=None):
+    def lgamma_(self: Tensor) -> Tensor:
+        raise NotImplementedError("lgamma_")
 
-        return False
+    def log(self: Tensor) -> Tensor:
+        return pi.log(self)
 
-    def is_distributed(self, *args, **kwargs):
-        raise NotImplementedError
+    def log10(self: Tensor) -> Tensor:
+        raise NotImplementedError("log10")
 
-    def is_floating_point(self):
+    def log10_(self: Tensor) -> Tensor:
+        raise NotImplementedError("log10_")
 
-        return False
+    def log1p(self: Tensor) -> Tensor:
+        return pi.log1p(self)
 
-    def is_inference(self):
+    def log1p_(self: Tensor) -> Tensor:
+        return pi.log1p_(self)
 
-        return False
+    def log2(self: Tensor) -> Tensor:
+        return pi.log2(self)
 
-    def is_neg(self):
+    def log2_(self: Tensor) -> Tensor:
+        return pi.log2_(self)
 
-        return False
+    def log_(self: Tensor) -> Tensor:
+        return pi.log_(self)
 
-    def is_nonzero(self, *args, **kwargs):
-        raise NotImplementedError
+    def log_normal_(
+        self: Tensor,
+        mean: float = 1,
+        std: float = 2,
+        *,
+        generator: Optional[Generator] = None,
+    ) -> Tensor:
+        raise NotImplementedError("log_normal_")
 
-    def is_pinned(self, *args, **kwargs):
-        raise NotImplementedError
+    @dispatch
+    def log_softmax(self: Tensor, dim: int, dtype: Optional[pi_dtype] = None) -> Tensor:
+        return pi.log_softmax(self, dim, dtype)
 
-    def is_same_size(self, *args, **kwargs):
-        raise NotImplementedError
+    @dispatch
+    def log_softmax(
+        self: Tensor,
+        dim: Union[str, ellipsis, None],
+        *,
+        dtype: Optional[pi_dtype] = None,
+    ) -> Tensor:
+        raise NotImplementedError("log_softmax")
 
-    def is_set_to(self, tensor):
+    def logaddexp(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("logaddexp")
 
-        return False
+    def logaddexp2(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("logaddexp2")
 
-    def is_signed(self):
+    @dispatch
+    def logcumsumexp(self: Tensor, dim: int) -> Tensor:
+        raise NotImplementedError("logcumsumexp")
 
-        return False
+    @dispatch
+    def logcumsumexp(self: Tensor, dim: Union[str, ellipsis, None]) -> Tensor:
+        raise NotImplementedError("logcumsumexp")
 
-    def item(self):
+    def logdet(self: Tensor) -> Tensor:
+        raise NotImplementedError("logdet")
 
-        return 0
+    def logical_and(self: Tensor, other: Tensor) -> Tensor:
+        return pi.logical_and(self, other)
 
-    def kron(self, other):
-        raise NotImplementedError
+    def logical_and_(self: Tensor, other: Tensor) -> Tensor:
+        return pi.logical_and_(self, other)
 
-    def kthvalue(self, k, dim=None, keepdim=False):
-        raise NotImplementedError
+    def logical_not(self: Tensor) -> Tensor:
+        return pi.logical_not(self)
 
-    def lcm(self, other):
-        raise NotImplementedError
+    def logical_not_(self: Tensor) -> Tensor:
+        return pi.logical_not_(self)
 
-    def lcm_(self, other):
-        raise NotImplementedError
+    def logical_or(self: Tensor, other: Tensor) -> Tensor:
+        return pi.logical_or(self, other)
 
-    def ldexp(self, other):
-        raise NotImplementedError
+    def logical_or_(self: Tensor, other: Tensor) -> Tensor:
+        return pi.logical_or_(self, other)
 
-    def ldexp_(self, other):
-        raise NotImplementedError
+    def logical_xor(self: Tensor, other: Tensor) -> Tensor:
+        return pi.logical_xor(self, other)
 
-    def le(self, other):
-        raise NotImplementedError
+    def logical_xor_(self: Tensor, other: Tensor) -> Tensor:
+        return pi.logical_xor_(self, other)
 
-    def lerp(self, end, weight):
-        raise NotImplementedError
+    def logit(self: Tensor, eps: Optional[float] = None) -> Tensor:
+        raise NotImplementedError("logit")
 
-    def lerp_(self, end, weight):
-        raise NotImplementedError
+    def logit_(self: Tensor, eps: Optional[float] = None) -> Tensor:
+        raise NotImplementedError("logit_")
 
-    def less(self, *args, **kwargs):
-        raise NotImplementedError
+    @dispatch
+    def logsumexp(self: Tensor, dim: Union[int, Size], keepdim: bool = False) -> Tensor:
+        return pi.logsumexp(self, dim, keepdim)
 
-    def less_(self, other):
-        raise NotImplementedError
+    @dispatch
+    def logsumexp(
+        self: Tensor, dim: Sequence[Union[str, ellipsis, None]], keepdim: bool = False
+    ) -> Tensor:
+        raise NotImplementedError("logsumexp")
 
-    def less_equal(self, other):
-        raise NotImplementedError
+    def long(self: Tensor) -> Tensor:
+        raise NotImplementedError("long")
 
-    def less_equal_(self, other):
-        raise NotImplementedError
+    @dispatch
+    def lt(self: Tensor, other: Tensor) -> Tensor:
+        return pi.lt(self, other)
 
-    def le_(self, other):
-        raise NotImplementedError
+    @dispatch
+    def lt(self: Tensor, other: Number) -> Tensor:
+        return pi.lt(self, other)
 
-    def lgamma(self):
-        raise NotImplementedError
+    @dispatch
+    def lt_(self: Tensor, other: Tensor) -> Tensor:
+        return pi.lt_(self, other)
 
-    def lgamma_(self):
-        raise NotImplementedError
+    @dispatch
+    def lt_(self: Tensor, other: Number) -> Tensor:
+        return pi.lt_(self, other)
 
-    def log(self):
-        raise NotImplementedError
+    def lu_solve(self: Tensor, LU_data: Tensor, LU_pivots: Tensor) -> Tensor:
+        raise NotImplementedError("lu_solve")
 
-    def log10(self):
-        raise NotImplementedError
+    def map2_(self: Tensor, x: Tensor, y: Tensor, callable: Callable) -> Tensor:
+        raise NotImplementedError("map2_")
 
-    def log10_(self):
-        raise NotImplementedError
+    def map_(self: Tensor, tensor: Tensor, callable: Callable) -> Tensor:
+        raise NotImplementedError("map_")
 
-    def log1p(self):
-        raise NotImplementedError
+    @dispatch
+    def masked_fill(self: Tensor, mask: Tensor, value: Tensor) -> Tensor:
+        return pi.masked_fill(self, mask, value)
 
-    def log1p_(self):
-        raise NotImplementedError
+    @dispatch
+    def masked_fill(self: Tensor, mask: Tensor, value: Number) -> Tensor:
+        return pi.masked_fill(self, mask, value)
 
-    def log2(self):
-        raise NotImplementedError
+    @dispatch
+    def masked_fill_(self: Tensor, mask: Tensor, value: Tensor) -> Tensor:
+        return pi.masked_fill_(self, mask, value)
 
-    def log2_(self):
-        raise NotImplementedError
+    @dispatch
+    def masked_fill_(self: Tensor, mask: Tensor, value: Number) -> Tensor:
+        return pi.masked_fill_(self, mask, value)
 
-    def logaddexp(self, other):
-        raise NotImplementedError
+    def masked_scatter(self: Tensor, mask: Tensor, source: Tensor) -> Tensor:
+        raise NotImplementedError("masked_scatter")
 
-    def logaddexp2(self, other):
-        raise NotImplementedError
+    def masked_scatter_(self: Tensor, mask: Tensor, source: Tensor) -> Tensor:
+        raise NotImplementedError("masked_scatter_")
 
-    def logcumsumexp(self, dim):
-        raise NotImplementedError
+    def masked_select(self: Tensor, mask: Tensor) -> Tensor:
+        return pi.masked_select(self, mask)
 
-    def logdet(self):
-        raise NotImplementedError
+    def matmul(self: Tensor, other: Tensor) -> Tensor:
+        return pi.matmul(self, other)
 
-    def logical_and(self):
-        raise NotImplementedError
+    def matrix_exp(self: Tensor) -> Tensor:
+        raise NotImplementedError("matrix_exp")
+
+    def matrix_power(self: Tensor, n: int) -> Tensor:
+        raise NotImplementedError("matrix_power")
+
+    @dispatch
+    def max(self: Tensor) -> Tensor:
+        return pi.max(self)
+
+    @dispatch
+    def max(self: Tensor, other: Tensor) -> Tensor:
+        return pi.max(self, other)
+
+    @dispatch
+    def max(self: Tensor, dim: int, keepdim: bool = False) -> ComplexReturnType("max"):
+        return pi.max(self, dim, keepdim)
+
+    @dispatch
+    def max(
+        self: Tensor, dim: Union[str, ellipsis, None], keepdim: bool = False
+    ) -> ComplexReturnType("max"):
+        raise NotImplementedError("max")
 
-    def logical_and_(self):
-        raise NotImplementedError
-
-    def logical_not(self):
-        raise NotImplementedError
-
-    def logical_not_(self):
-        raise NotImplementedError
-
-    def logical_or(self):
-        raise NotImplementedError
-
-    def logical_or_(self):
-        raise NotImplementedError
-
-    def logical_xor(self):
-        raise NotImplementedError
-
-    def logical_xor_(self):
-        raise NotImplementedError
-
-    def logit(self):
-        raise NotImplementedError
-
-    def logit_(self):
-        raise NotImplementedError
-
-    def logsumexp(self, dim, keepdim=False):
-        raise NotImplementedError
-
-    def log_(self):
-        raise NotImplementedError
-
-    def log_normal_(self, mean=1, std=2, *args, **kwargs):
-        raise NotImplementedError
-
-    def log_softmax(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def long(self, memory_format=None):
-        raise NotImplementedError
-
-    def lt(self, other):
-        raise NotImplementedError
-
-    def lt_(self, other):
-        raise NotImplementedError
-
-    def lu_solve(self, LU_data, LU_pivots):
-        raise NotImplementedError
-
-    def map2_(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def map_(self, tensor, callable):
-        raise NotImplementedError
-
-    def masked_fill(self, mask, value):
-        raise NotImplementedError
-
-    def masked_fill_(self, mask, value):
-        raise NotImplementedError
-
-    def masked_scatter(self, mask, tensor):
-        raise NotImplementedError
-
-    def masked_scatter_(self, mask, source):
-        raise NotImplementedError
-
-    def masked_select(self, mask):
-        raise NotImplementedError
-
-    def matmul(self, tensor2):
-        raise NotImplementedError
-
-    def matrix_exp(self):
-        raise NotImplementedError
-
-    def matrix_power(self, n):
-        raise NotImplementedError
-
-    def max(self, dim=None, keepdim=False):
-        raise NotImplementedError
-
-    def maximum(self, other):
-        raise NotImplementedError
-
-    def mean(self, dim=None, keepdim=False, *args, **kwargs):
-        raise NotImplementedError
-
-    def median(self, dim=None, keepdim=False):
-        raise NotImplementedError
-
-    def min(self, dim=None, keepdim=False):
-        raise NotImplementedError
-
-    def minimum(self, other):
-        raise NotImplementedError
-
-    def mm(self, mat2):
-        raise NotImplementedError
-
-    def mode(self, dim=None, keepdim=False):
-        raise NotImplementedError
-
-    def moveaxis(self, source, destination):
-        raise NotImplementedError
-
-    def movedim(self, source, destination):
-        raise NotImplementedError
-
-    def msort(self):
-        raise NotImplementedError
-
-    def mul(self, value):
-        raise NotImplementedError
-
-    def multinomial(self, num_samples, replacement=False, *args, **kwargs):
-        raise NotImplementedError
-
-    def multiply(self, value):
-        raise NotImplementedError
-
-    def multiply_(self, value):
-        raise NotImplementedError
-
-    def mul_(self, value):
-        raise NotImplementedError
-
-    def mv(self, vec):
-        raise NotImplementedError
-
-    def mvlgamma(self, p):
-        raise NotImplementedError
-
-    def mvlgamma_(self, p):
-        raise NotImplementedError
-
-    def nanmean(self, dim=None, keepdim=False, *args, **kwargs):
-        raise NotImplementedError
-
-    def nanmedian(self, dim=None, keepdim=False):
-        raise NotImplementedError
-
-    def nanquantile(self, q, dim=None, keepdim=False, *args, **kwargs):
-        raise NotImplementedError
-
-    def nansum(self, dim=None, keepdim=False, dtype=None):
-        raise NotImplementedError
-
-    def nan_to_num(self, nan=0.0, posinf=None, neginf=None):
-        raise NotImplementedError
-
-    def nan_to_num_(self, nan=0.0, posinf=None, neginf=None):
-        raise NotImplementedError
-
-    def narrow(self, dimension, start, length):
-        raise NotImplementedError
-
-    def narrow_copy(self, dimension, start, length):
-        raise NotImplementedError
-
-    def ndimension(self):
-
-        return 0
-
-    def ne(self, other):
-        raise NotImplementedError
-
-    def neg(self):
-        raise NotImplementedError
-
-    def negative(self):
-        raise NotImplementedError
-
-    def negative_(self):
-        raise NotImplementedError
-
-    def neg_(self):
-        raise NotImplementedError
-
-    def nelement(self):
-
-        return 0
-
-    def new(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def new_empty(self, size, *args, **kwargs):
-        raise NotImplementedError
+    def maximum(self: Tensor, other: Tensor) -> Tensor:
+        return pi.maximum(self, other)
+
+    @dispatch
+    def mean(self: Tensor, *, dtype: Optional[pi_dtype] = None) -> Tensor:
+        return pi.mean(self, dtype)
+
+    @dispatch
+    def mean(
+        self: Tensor,
+        dim: Optional[Union[int, Size]],
+        keepdim: bool = False,
+        *,
+        dtype: Optional[pi_dtype] = None,
+    ) -> Tensor:
+        return pi.mean(self, dim, keepdim, dtype)
+
+    @dispatch
+    def mean(
+        self: Tensor,
+        dim: Sequence[Union[str, ellipsis, None]],
+        keepdim: bool = False,
+        *,
+        dtype: Optional[pi_dtype] = None,
+    ) -> Tensor:
+        raise NotImplementedError("mean")
+
+    @dispatch
+    def median(self: Tensor) -> Tensor:
+        raise NotImplementedError("median")
+
+    @dispatch
+    def median(
+        self: Tensor, dim: int, keepdim: bool = False
+    ) -> ComplexReturnType("median"):
+        raise NotImplementedError("median")
+
+    @dispatch
+    def median(
+        self: Tensor, dim: Union[str, ellipsis, None], keepdim: bool = False
+    ) -> ComplexReturnType("median"):
+        raise NotImplementedError("median")
+
+    @dispatch
+    def min(self: Tensor) -> Tensor:
+        raise NotImplementedError("min")
+
+    @dispatch
+    def min(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("min")
+
+    @dispatch
+    def min(self: Tensor, dim: int, keepdim: bool = False) -> ComplexReturnType("min"):
+        raise NotImplementedError("min")
+
+    @dispatch
+    def min(
+        self: Tensor, dim: Union[str, ellipsis, None], keepdim: bool = False
+    ) -> ComplexReturnType("min"):
+        raise NotImplementedError("min")
+
+    def minimum(self: Tensor, other: Tensor) -> Tensor:
+        return pi.minimum(self, other)
+
+    def mm(self: Tensor, mat2: Tensor) -> Tensor:
+        return pi.mm(self, mat2)
+
+    @dispatch
+    def mode(
+        self: Tensor, dim: int = -1, keepdim: bool = False
+    ) -> ComplexReturnType("mode"):
+        raise NotImplementedError("mode")
+
+    @dispatch
+    def mode(
+        self: Tensor, dim: Union[str, ellipsis, None], keepdim: bool = False
+    ) -> ComplexReturnType("mode"):
+        raise NotImplementedError("mode")
+
+    @dispatch
+    def moveaxis(self: Tensor, source: int, destination: int) -> Tensor:
+        raise NotImplementedError("moveaxis")
+
+    @dispatch
+    def moveaxis(self: Tensor, source: Size, destination: Size) -> Tensor:
+        raise NotImplementedError("moveaxis")
+
+    @dispatch
+    def movedim(self: Tensor, source: int, destination: int) -> Tensor:
+        raise NotImplementedError("movedim")
+
+    @dispatch
+    def movedim(self: Tensor, source: Size, destination: Size) -> Tensor:
+        raise NotImplementedError("movedim")
+
+    def msort(self: Tensor) -> Tensor:
+        raise NotImplementedError("msort")
+
+    def mul(
+        self: Tensor, other: Union[Tensor, Number], *, out: Optional[Tensor] = None
+    ) -> Tensor:
+        if out is not None:
+            raise NotImplementedError("mul.out variant")
+        return pi.mul(self, other)
+
+    def mul_(self: Tensor, other: Union[Tensor, Number]) -> Tensor:
+        return pi.mul_(self, other)
+
+    def multinomial(
+        self: Tensor,
+        num_samples: int,
+        replacement: bool = False,
+        *,
+        generator: Optional[Generator] = None,
+    ) -> Tensor:
+        raise NotImplementedError("multinomial")
+
+    @dispatch
+    def multiply(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("multiply")
+
+    @dispatch
+    def multiply(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("multiply")
+
+    @dispatch
+    def multiply_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("multiply_")
+
+    @dispatch
+    def multiply_(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("multiply_")
+
+    def mv(self: Tensor, vec: Tensor) -> Tensor:
+        return pi.mv(self, vec)
+
+    def mvlgamma(self: Tensor, p: int) -> Tensor:
+        raise NotImplementedError("mvlgamma")
+
+    def mvlgamma_(self: Tensor, p: int) -> Tensor:
+        raise NotImplementedError("mvlgamma_")
+
+    def nan_to_num(
+        self: Tensor,
+        nan: Optional[float] = None,
+        posinf: Optional[float] = None,
+        neginf: Optional[float] = None,
+    ) -> Tensor:
+        raise NotImplementedError("nan_to_num")
+
+    def nan_to_num_(
+        self: Tensor,
+        nan: Optional[float] = None,
+        posinf: Optional[float] = None,
+        neginf: Optional[float] = None,
+    ) -> Tensor:
+        raise NotImplementedError("nan_to_num_")
+
+    def nanmean(
+        self: Tensor,
+        dim: Optional[Union[int, Size]] = None,
+        keepdim: bool = False,
+        *,
+        dtype: Optional[pi_dtype] = None,
+    ) -> Tensor:
+        raise NotImplementedError("nanmean")
+
+    @dispatch
+    def nanmedian(self: Tensor) -> Tensor:
+        raise NotImplementedError("nanmedian")
+
+    @dispatch
+    def nanmedian(
+        self: Tensor, dim: int, keepdim: bool = False
+    ) -> ComplexReturnType("nanmedian"):
+        raise NotImplementedError("nanmedian")
+
+    @dispatch
+    def nanmedian(
+        self: Tensor, dim: Union[str, ellipsis, None], keepdim: bool = False
+    ) -> ComplexReturnType("nanmedian"):
+        raise NotImplementedError("nanmedian")
+
+    @dispatch
+    def nanquantile(
+        self: Tensor,
+        q: Tensor,
+        dim: Optional[int] = None,
+        keepdim: bool = False,
+        *,
+        interpolation: str = "linear",
+    ) -> Tensor:
+        raise NotImplementedError("nanquantile")
+
+    @dispatch
+    def nanquantile(
+        self: Tensor,
+        q: float,
+        dim: Optional[int] = None,
+        keepdim: bool = False,
+        *,
+        interpolation: str = "linear",
+    ) -> Tensor:
+        raise NotImplementedError("nanquantile")
+
+    def nansum(
+        self: Tensor,
+        dim: Optional[Union[int, Size]] = None,
+        keepdim: bool = False,
+        *,
+        dtype: Optional[pi_dtype] = None,
+    ) -> Tensor:
+        raise NotImplementedError("nansum")
+
+    @dispatch
+    def narrow(self: Tensor, dim: int, start: Tensor, length: int) -> Tensor:
+        raise NotImplementedError("narrow")
+
+    @dispatch
+    def narrow(self: Tensor, dim: int, start: int, length: int) -> Tensor:
+        return pi.narrow(self, dim, start, length)
+
+    def narrow_copy(self: Tensor, dim: int, start: int, length: int) -> Tensor:
+        raise NotImplementedError("narrow_copy")
+
+    def ndimension(self: Tensor) -> int:
+        raise NotImplementedError("ndimension")
+
+    @dispatch
+    def ne(self: Tensor, other: Tensor) -> Tensor:
+        return pi.ne(self, other)
+
+    @dispatch
+    def ne(self: Tensor, other: Number) -> Tensor:
+        return pi.ne(self, other)
+
+    @dispatch
+    def ne_(self: Tensor, other: Tensor) -> Tensor:
+        return pi.ne_(self, other)
+
+    @dispatch
+    def ne_(self: Tensor, other: Number) -> Tensor:
+        return pi.ne_(self, other)
+
+    def neg(self: Tensor) -> Tensor:
+        return pi.neg(self)
+
+    def neg_(self: Tensor) -> Tensor:
+        return pi.neg_(self)
+
+    def negative(self: Tensor) -> Tensor:
+        raise NotImplementedError("negative")
+
+    def negative_(self: Tensor) -> Tensor:
+        raise NotImplementedError("negative_")
+
+    def nelement(self: Tensor) -> int:
+        raise NotImplementedError("nelement")
+
+    @dispatch
+    def new(self: Tensor, *args: Any, device: Device = None) -> Tensor:
+        raise NotImplementedError("new")
+
+    @dispatch
+    def new(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("new")
+
+    @dispatch
+    def new(self: Tensor, size: Size, *, device: Device = None) -> Tensor:
+        raise NotImplementedError("new")
+
+    @dispatch
+    def new_empty(
+        self: Tensor,
+        size: List[int],
+        *,
+        dtype: Optional[pi_dtype] = None,
+        layout: Optional[layout] = None,
+        device: Optional[Union[device, str, None]] = None,
+        pin_memory: Optional[bool] = False,
+        requires_grad: Optional[bool] = False,
+    ) -> Tensor:
+        return pi.new_empty(
+            self, size, dtype, layout, device, pin_memory, requires_grad
+        )
+
+    @dispatch
+    def new_empty(
+        self: Tensor,
+        *size: int,
+        dtype: Optional[pi_dtype] = None,
+        layout: Optional[layout] = None,
+        device: Optional[Union[device, str, None]] = None,
+        pin_memory: Optional[bool] = False,
+        requires_grad: Optional[bool] = False,
+    ) -> Tensor:
+        raise NotImplementedError("new_empty")
 
     def new_empty_strided(
-        self,
-        size,
-        stride,
-        dtype=None,
-        device=None,
-        requires_grad=False,
-        layout=None,
-        pin_memory=False,
-    ):
-        raise NotImplementedError
-
-    def new_full(self, size, fill_value, *args, **kwargs):
-        raise NotImplementedError
-
-    def new_ones(self, size, *args, **kwargs):
-        raise NotImplementedError
-
-    def new_tensor(self, data, *args, **kwargs):
-        raise NotImplementedError
-
-    def new_zeros(self, size, *args, **kwargs):
-        raise NotImplementedError
-
-    def nextafter(self, other):
-        raise NotImplementedError
-
-    def nextafter_(self, other):
-        raise NotImplementedError
-
-    def ne_(self, other):
-        raise NotImplementedError
-
-    def nonzero(self):
-        raise NotImplementedError
-
-    def norm(self, p=2, dim=None, keepdim=False):
-        raise NotImplementedError
-
-    def normal_(self, mean=0, std=1, *args, **kwargs):
-        raise NotImplementedError
-
-    def not_equal(self, other):
-        raise NotImplementedError
-
-    def not_equal_(self, other):
-        raise NotImplementedError
-
-    def numel(self):
-
-        return 0
-
-    def numpy(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def orgqr(self, input2):
-        raise NotImplementedError
-
-    def ormqr(self, input2, input3, left=True, transpose=False):
-        raise NotImplementedError
-
-    def outer(self, vec2):
-        raise NotImplementedError
-
-    def permute(self, *dims):
-        raise NotImplementedError
-
-    def pinverse(self):
-        raise NotImplementedError
-
-    def pin_memory(self):
-        raise NotImplementedError
-
-    def polygamma(self, n):
-        raise NotImplementedError
-
-    def polygamma_(self, n):
-        raise NotImplementedError
-
-    def positive(self):
-        raise NotImplementedError
-
-    def pow(self, exponent):
-        raise NotImplementedError
-
-    def pow_(self, exponent):
-        raise NotImplementedError
-
-    def prelu(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def prod(self, dim=None, keepdim=False, dtype=None):
-        raise NotImplementedError
-
-    def put(self, input, index, source, accumulate=False):
-        raise NotImplementedError
-
-    def put_(self, index, source, accumulate=False):
-        raise NotImplementedError
-
-    def qr(self, some=True):
-        raise NotImplementedError
-
-    def qscheme(self):
-        raise NotImplementedError
-
-    def quantile(self, q, dim=None, keepdim=False, *args, **kwargs):
-        raise NotImplementedError
-
-    def q_per_channel_axis(self):
-
-        return 0
-
-    def q_per_channel_scales(self):
-        raise NotImplementedError
-
-    def q_per_channel_zero_points(
-        self,
-    ):
-        raise NotImplementedError
-
-    def q_scale(self):
-
-        return 0.0
-
-    def q_zero_point(self):
-
-        return 0
-
-    def rad2deg(self):
-        raise NotImplementedError
-
-    def rad2deg_(self):
-        raise NotImplementedError
-
-    def random_(self, from_=0, to=None, *args, **kwargs):
-        raise NotImplementedError
-
-    def ravel(self):
-        raise NotImplementedError
-
-    def reciprocal(self):
-        raise NotImplementedError
-
-    def reciprocal_(self):
-        raise NotImplementedError
-
-    def record_stream(self, stream):
-        raise NotImplementedError
-
-    def refine_names(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def relu(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def relu_(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def remainder(self, divisor):
-        raise NotImplementedError
-
-    def remainder_(self, divisor):
-        raise NotImplementedError
-
-    def rename(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def rename_(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def renorm(self, p, dim, maxnorm):
-        raise NotImplementedError
-
-    def renorm_(self, p, dim, maxnorm):
-        raise NotImplementedError
-
-    def repeat(self, *sizes):
-        raise NotImplementedError
-
-    def repeat_interleave(self, repeats, dim=None, *args, **kwargs):
-        raise NotImplementedError
-
-    def requires_grad_(self, requires_grad=True):
-        raise NotImplementedError
-
-    def reshape(self, *shape):
-        raise NotImplementedError
-
-    def reshape_as(self, other):
-        raise NotImplementedError
-
-    def resize_(self, *sizes, memory_format=None):
-        raise NotImplementedError
-
-    def resize_as_(self, tensor, memory_format=None):
-        raise NotImplementedError
-
-    def resize_as_sparse_(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def resolve_conj(self):
-        raise NotImplementedError
-
-    def resolve_neg(self):
-        raise NotImplementedError
-
-    def retain_grad(self):
-        raise NotImplementedError
-
-    def roll(self, shifts, dims):
-        raise NotImplementedError
-
-    def rot90(self, k, dims):
-        raise NotImplementedError
-
-    def round(self, decimals=0):
-        raise NotImplementedError
-
-    def round_(self, decimals=0):
-        raise NotImplementedError
-
-    def row_indices(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def rsqrt(self):
-        raise NotImplementedError
-
-    def rsqrt_(self):
-        raise NotImplementedError
-
-    def scatter(self, dim, index, src):
-        raise NotImplementedError
-
-    def scatter_(self, dim, index, src, reduce=None):
-        raise NotImplementedError
-
-    def scatter_add(self, dim, index, src):
-        raise NotImplementedError
-
-    def scatter_add_(self, dim, index, src):
-        raise NotImplementedError
-
-    def scatter_reduce(self, dim, index, src, reduce, *args, **kwargs):
-        raise NotImplementedError
-
-    def scatter_reduce_(self, dim, index, src, reduce, *args, **kwargs):
-        raise NotImplementedError
-
-    def select(self, dim, index):
-        raise NotImplementedError
-
-    def select_scatter(self, src, dim, index):
-        raise NotImplementedError
-
-    def set_(self, source=None, storage_offset=0, size=None, stride=None):
-        raise NotImplementedError
-
-    def sgn(self):
-        raise NotImplementedError
-
-    def sgn_(self):
-        raise NotImplementedError
-
-    def short(self, memory_format=None):
-        raise NotImplementedError
-
-    def sigmoid(self):
-        raise NotImplementedError
-
-    def sigmoid_(self):
-        raise NotImplementedError
-
-    def sign(self):
-        raise NotImplementedError
-
-    def signbit(self):
-        raise NotImplementedError
-
-    def sign_(self):
-        raise NotImplementedError
-
-    def sin(self):
-        raise NotImplementedError
-
-    def sinc(self):
-        raise NotImplementedError
-
-    def sinc_(self):
-        raise NotImplementedError
-
-    def sinh(self):
-        raise NotImplementedError
-
-    def sinh_(self):
-        raise NotImplementedError
-
-    def sin_(self):
-        raise NotImplementedError
-
-    def size(self, dim=None):
-        raise NotImplementedError
-
-    def slice_scatter(self, src, dim=0, start=None, end=None, step=1):
-        raise NotImplementedError
-
-    def slogdet(self):
-        raise NotImplementedError
-
-    def smm(self, mat):
-        raise NotImplementedError
-
-    def softmax(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def sort(self, dim=-1, descending=False):
-        raise NotImplementedError
-
-    def sparse_dim(self):
-
-        return 0
-
-    def sparse_mask(self, mask):
-        raise NotImplementedError
-
-    def sparse_resize_(self, size, sparse_dim, dense_dim):
-        raise NotImplementedError
-
-    def sparse_resize_and_clear_(self, size, sparse_dim, dense_dim):
-        raise NotImplementedError
-
-    def split(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def split_with_sizes(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def sqrt(self):
-        raise NotImplementedError
-
-    def sqrt_(self):
-        raise NotImplementedError
-
-    def square(self):
-        raise NotImplementedError
-
-    def square_(self):
-        raise NotImplementedError
-
-    def squeeze(self, dim=None):
-        raise NotImplementedError
-
-    def squeeze_(self, dim=None):
-        raise NotImplementedError
-
-    def sspaddmm(self, mat1, mat2, *args, **kwargs):
-        raise NotImplementedError
-
-    def std(self, dim, unbiased=True, keepdim=False):
-        raise NotImplementedError
-
-    def stft(
-        self,
-        frame_length,
-        hop,
-        fft_size=None,
-        return_onesided=True,
-        window=None,
-        pad_end=0,
-    ):
-        raise NotImplementedError
-
-    def storage_offset(self):
-
-        return 0
-
-    def stride(self, dim):
-
-        return ()
-
-    def sub(self, other, *args, **kwargs):
-        raise NotImplementedError
-
-    def subtract(self, other, *args, **kwargs):
-        raise NotImplementedError
-
-    def subtract_(self, other, *args, **kwargs):
-        raise NotImplementedError
-
-    def sub_(self, other, *args, **kwargs):
-        raise NotImplementedError
-
-    def sum(self, dim=None, keepdim=False, dtype=None):
-        raise NotImplementedError
-
-    def sum_to_size(self, *size):
-        raise NotImplementedError
-
-    def svd(self, some=True, compute_uv=True):
-        raise NotImplementedError
-
-    def swapaxes(self, axis0, axis1):
-        raise NotImplementedError
-
-    def swapaxes_(self, axis0, axis1):
-        raise NotImplementedError
-
-    def swapdims(self, dim0, dim1):
-        raise NotImplementedError
-
-    def swapdims_(self, dim0, dim1):
-        raise NotImplementedError
-
-    def symeig(self, eigenvectors=False, upper=True):
-        raise NotImplementedError
-
-    def t(self):
-        raise NotImplementedError
-
-    def take(self, indices):
-        raise NotImplementedError
-
-    def take_along_dim(self, indices, dim):
-        raise NotImplementedError
-
-    def tan(self):
-        raise NotImplementedError
-
-    def tanh(self):
-        raise NotImplementedError
-
-    def tanh_(self):
-        raise NotImplementedError
-
-    def tan_(self):
-        raise NotImplementedError
-
-    def tensor_split(self, indices_or_sections, dim=0):
-        raise NotImplementedError
-
-    def tile(self, *reps):
-        raise NotImplementedError
-
-    def to(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def tolist(self):
-        raise NotImplementedError
-
-    def topk(self, k, dim=None, largest=True, sorted=True):
-        raise NotImplementedError
-
-    def to_dense(self):
-        raise NotImplementedError
-
-    def to_mkldnn(self):
-        raise NotImplementedError
-
-    def to_padded_tensor(self, padding, output_size=None):
-        raise NotImplementedError
-
-    def to_sparse(self, sparseDims):
-        raise NotImplementedError
-
-    def to_sparse_bsc(self, blocksize):
-        raise NotImplementedError
-
-    def to_sparse_bsr(self, blocksize):
-        raise NotImplementedError
-
-    def to_sparse_csc(self):
-        raise NotImplementedError
-
-    def to_sparse_csr(self):
-        raise NotImplementedError
-
-    def trace(self):
-        raise NotImplementedError
-
-    def transpose(self, dim0, dim1):
-        raise NotImplementedError
-
-    def transpose_(self, dim0, dim1):
-        raise NotImplementedError
-
-    def triangular_solve(self, A, upper=True, transpose=False, unitriangular=False):
-        raise NotImplementedError
-
-    def tril(self, diagonal=0):
-        raise NotImplementedError
-
-    def tril_(self, diagonal=0):
-        raise NotImplementedError
-
-    def triu(self, diagonal=0):
-        raise NotImplementedError
-
-    def triu_(self, diagonal=0):
-        raise NotImplementedError
-
-    def true_divide(self, value):
-        raise NotImplementedError
-
-    def true_divide_(self, value):
-        raise NotImplementedError
-
-    def trunc(self):
-        raise NotImplementedError
-
-    def trunc_(self):
-        raise NotImplementedError
-
-    # def type(
-    #     self, dtype=None, non_blocking=False, **kwargs
-    # ):
-    #     return ""
-
-    def type_as(self, tensor):
-        raise NotImplementedError
-
-    def t_(self):
-        raise NotImplementedError
-
-    def unbind(self, dim=0):
-        raise NotImplementedError
-
-    def unflatten(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def unfold(self, dimension, size, step):
-        raise NotImplementedError
-
-    def uniform_(self, from_=0, to=1):
-        raise NotImplementedError
-
-    def unsafe_chunk(self, chunks, dim=0):
-        raise NotImplementedError
-
-    def unsafe_split(self, split_size, dim=0):
-        raise NotImplementedError
-
-    def unsafe_split_with_sizes(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def unsqueeze(self, dim):
-        raise NotImplementedError
-
-    def unsqueeze_(self, dim):
-        raise NotImplementedError
-
-    def values(self):
-        raise NotImplementedError
-
-    def var(self, dim, unbiased=True, keepdim=False):
-        raise NotImplementedError
-
-    def vdot(self, other):
-        raise NotImplementedError
-
-    def view(self, *shape):
-        raise NotImplementedError
-
-    def view_as(self, other):
-        raise NotImplementedError
-
-    def vsplit(self, split_size_or_sections):
-        raise NotImplementedError
-
-    def where(self, condition, y):
-        raise NotImplementedError
-
-    def xlogy(self, other):
-        raise NotImplementedError
-
-    def xlogy_(self, other):
-        raise NotImplementedError
-
-    def xpu(self, device=None, non_blocking=False, memory_format=None):
-        raise NotImplementedError
-
-    def zero_(self):
-        raise NotImplementedError
-
-    def _addmm_activation(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _autocast_to_full_precision(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _autocast_to_reduced_precision(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _coalesced_(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _conj(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _conj_physical(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _dimI(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _dimV(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _fix_weakref(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _indices(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _is_view(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _is_zerotensor(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _make_subclass(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _make_wrapper_subclass(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _neg_view(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _nested_tensor_size(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _nnz(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _storage(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _to_dense(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _values(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __add__(self, *args, **kwargs):
-        return pi.add_Tensor(self, args[0])
-
-    def __and__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __bool__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __complex__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __delitem__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __div__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __eq__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __float__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __floordiv__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __getitem__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __ge__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __gt__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    #
-    # def __iadd__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    # def __iand__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    # def __idiv__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    # def __ifloordiv__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    # def __ilshift__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    # def __imod__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    # def __imul__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    # def __index__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    def __int__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __invert__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    #
-    # def __ior__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    # def __irshift__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    # def __isub__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    # def __ixor__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    def __len__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __le__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __long__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    #
-    # def __lshift__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    def __lt__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    #
-    # def __matmul__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    def __mod__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    #
-    def __mul__(self, *args, **kwargs):
-        return pi.mul_Tensor(self, args[0])
-
-    def __ne__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __nonzero__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __or__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    # def __radd__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    # def __rand__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    # def __rmul__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    # def __ror__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    # def __rshift__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    # def __rxor__(self, *args, **kwargs):
-    #     raise NotImplementedError
-    #
-    def __setitem__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __sub__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def __truediv__(self, *args, **kwargs):
-        raise NotImplementedError
-
-    # def __xor__(self, *args, **kwargs):
-    #     raise NotImplementedError
-
-    # data = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # device = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # dtype = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # grad = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # grad_fn = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # H = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # imag = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # is_cpu = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # is_cuda = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # is_ipu = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # is_leaf = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # is_meta = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # is_mkldnn = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # is_mps = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # is_nested = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # is_ort = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # is_quantized = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # is_sparse = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # is_sparse_csr = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # is_vulkan = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # is_xpu = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # layout = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # mH = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # mT = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # name = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # names = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # ndim = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # output_nr = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # real = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # requires_grad = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # retains_grad = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # shape = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # T = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # volatile = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # _backward_hooks = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # _base = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # _cdata = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # _grad = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # _grad_fn = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # _has_symbolic_sizes_strides = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # _python_dispatch = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
-    #
-    # _version = property(
-    #     lambda self: object(), lambda self, v: None, lambda self: None
-    # )  # default
+        self: Tensor,
+        size: List[int],
+        stride: List[int],
+        *,
+        dtype: Optional[pi_dtype] = None,
+        layout: Optional[layout] = None,
+        device: Optional[Union[device, str, None]] = None,
+        pin_memory: Optional[bool] = False,
+        requires_grad: Optional[bool] = False,
+    ) -> Tensor:
+        raise NotImplementedError("new_empty_strided")
+
+    def new_full(
+        self: Tensor,
+        size: List[int],
+        fill_value: Number,
+        *,
+        dtype: Optional[pi_dtype] = None,
+        layout: Optional[layout] = None,
+        device: Optional[Union[device, str, None]] = None,
+        pin_memory: Optional[bool] = False,
+        requires_grad: Optional[bool] = False,
+    ) -> Tensor:
+        raise NotImplementedError("new_full")
+
+    @dispatch
+    def new_ones(
+        self: Tensor,
+        size: Size,
+        dtype: Optional[pi_dtype] = None,
+        device: Device = None,
+        requires_grad: bool = False,
+    ) -> Tensor:
+        return pi.new_ones(self, size, dtype, device, requires_grad)
+
+    @dispatch
+    def new_ones(
+        self: Tensor,
+        size: List[int],
+        *,
+        dtype: Optional[pi_dtype] = None,
+        layout: Optional[layout] = None,
+        device: Optional[Union[device, str, None]] = None,
+        pin_memory: Optional[bool] = False,
+        requires_grad: Optional[bool] = False,
+    ) -> Tensor:
+        return pi.new_ones(self, size, dtype, layout, device, pin_memory, requires_grad)
+
+    @dispatch
+    def new_ones(
+        self: Tensor,
+        *size: int,
+        dtype: Optional[pi_dtype] = None,
+        layout: Optional[layout] = None,
+        device: Optional[Union[device, str, None]] = None,
+        pin_memory: Optional[bool] = False,
+        requires_grad: Optional[bool] = False,
+    ) -> Tensor:
+        raise NotImplementedError("new_ones")
+
+    def new_tensor(
+        self: Tensor,
+        data: Any,
+        dtype: Optional[pi_dtype] = None,
+        device: Device = None,
+        requires_grad: bool = False,
+    ) -> Tensor:
+        raise NotImplementedError("new_tensor")
+
+    @dispatch
+    def new_zeros(
+        self: Tensor,
+        size: List[int],
+        *,
+        dtype: Optional[pi_dtype] = None,
+        layout: Optional[layout] = None,
+        device: Optional[Union[device, str, None]] = None,
+        pin_memory: Optional[bool] = False,
+        requires_grad: Optional[bool] = False,
+    ) -> Tensor:
+        return pi.new_zeros(
+            self, size, dtype, layout, device, pin_memory, requires_grad
+        )
+
+    @dispatch
+    def new_zeros(
+        self: Tensor,
+        *size: int,
+        dtype: Optional[pi_dtype] = None,
+        layout: Optional[layout] = None,
+        device: Optional[Union[device, str, None]] = None,
+        pin_memory: Optional[bool] = False,
+        requires_grad: Optional[bool] = False,
+    ) -> Tensor:
+        raise NotImplementedError("new_zeros")
+
+    def nextafter(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("nextafter")
+
+    def nextafter_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("nextafter_")
+
+    @dispatch
+    def nonzero(self: Tensor, *, as_tuple: Literal[False] = False) -> Tensor:
+        raise NotImplementedError("nonzero")
+
+    @dispatch
+    def nonzero(self: Tensor, *, as_tuple: Literal[True]) -> Tuple[Tensor, ...]:
+        raise NotImplementedError("nonzero")
+
+    def normal_(
+        self: Tensor,
+        mean: float = 0,
+        std: float = 1,
+        *,
+        generator: Optional[Generator] = None,
+    ) -> Tensor:
+        raise NotImplementedError("normal_")
+
+    @dispatch
+    def not_equal(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("not_equal")
+
+    @dispatch
+    def not_equal(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("not_equal")
+
+    @dispatch
+    def not_equal_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("not_equal_")
+
+    @dispatch
+    def not_equal_(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("not_equal_")
+
+    def numel(self: Tensor) -> int:
+        return pi.numel(self)
+
+    def numpy(self: Tensor, *, force: bool = False) -> Any:
+        raise NotImplementedError("numpy")
+
+    def orgqr(self: Tensor, input2: Tensor) -> Tensor:
+        raise NotImplementedError("orgqr")
+
+    def ormqr(
+        self: Tensor,
+        input2: Tensor,
+        input3: Tensor,
+        left: bool = True,
+        transpose: bool = False,
+    ) -> Tensor:
+        raise NotImplementedError("ormqr")
+
+    def outer(self: Tensor, vec2: Tensor) -> Tensor:
+        raise NotImplementedError("outer")
+
+    @dispatch
+    def permute(self: Tensor, dims: Size) -> Tensor:
+        return pi.permute(self, dims)
+
+    @dispatch
+    def permute(self: Tensor, *dims: int) -> Tensor:
+        return pi.permute(self, dims)
+
+    def pin_memory(
+        self: Tensor, device: Optional[Union[device, str, None]] = None
+    ) -> Tensor:
+        raise NotImplementedError("pin_memory")
+
+    def pinverse(self: Tensor, rcond: float = 1e-15) -> Tensor:
+        raise NotImplementedError("pinverse")
+
+    def polygamma(self: Tensor, n: int) -> Tensor:
+        raise NotImplementedError("polygamma")
+
+    def polygamma_(self: Tensor, n: int) -> Tensor:
+        raise NotImplementedError("polygamma_")
+
+    def positive(self: Tensor) -> Tensor:
+        raise NotImplementedError("positive")
+
+    @dispatch
+    def pow(self: Tensor, exponent: Tensor) -> Tensor:
+        return pi.pow(self, exponent)
+
+    @dispatch
+    def pow(self: Tensor, exponent: Number) -> Tensor:
+        return pi.pow(self, exponent)
+
+    @dispatch
+    def pow_(self: Tensor, exponent: Tensor) -> Tensor:
+        raise NotImplementedError("pow_")
+
+    @dispatch
+    def pow_(self: Tensor, exponent: Number) -> Tensor:
+        raise NotImplementedError("pow_")
+
+    def prelu(self: Tensor, weight: Tensor) -> Tensor:
+        return pi.prelu(self, weight)
+
+    @dispatch
+    def prod(self: Tensor, *, dtype: Optional[pi_dtype] = None) -> Tensor:
+        raise NotImplementedError("prod")
+
+    @dispatch
+    def prod(
+        self: Tensor,
+        dim: int,
+        keepdim: bool = False,
+        *,
+        dtype: Optional[pi_dtype] = None,
+    ) -> Tensor:
+        raise NotImplementedError("prod")
+
+    @dispatch
+    def prod(
+        self: Tensor,
+        dim: Union[str, ellipsis, None],
+        keepdim: bool = False,
+        *,
+        dtype: Optional[pi_dtype] = None,
+    ) -> Tensor:
+        raise NotImplementedError("prod")
+
+    def put(
+        self: Tensor, index: Tensor, source: Tensor, accumulate: bool = False
+    ) -> Tensor:
+        raise NotImplementedError("put")
+
+    def put_(
+        self: Tensor, index: Tensor, source: Tensor, accumulate: bool = False
+    ) -> Tensor:
+        raise NotImplementedError("put_")
+
+    def q_per_channel_axis(self: Tensor) -> int:
+        raise NotImplementedError("q_per_channel_axis")
+
+    def q_per_channel_scales(self: Tensor) -> Tensor:
+        raise NotImplementedError("q_per_channel_scales")
+
+    def q_per_channel_zero_points(self: Tensor) -> Tensor:
+        raise NotImplementedError("q_per_channel_zero_points")
+
+    def q_scale(self: Tensor) -> float:
+        raise NotImplementedError("q_scale")
+
+    def q_zero_point(self: Tensor) -> int:
+        raise NotImplementedError("q_zero_point")
+
+    def qr(self: Tensor, some: bool = True) -> ComplexReturnType("qr"):
+        raise NotImplementedError("qr")
+
+    @dispatch
+    def quantile(
+        self: Tensor,
+        q: Tensor,
+        dim: Optional[int] = None,
+        keepdim: bool = False,
+        *,
+        interpolation: str = "linear",
+    ) -> Tensor:
+        raise NotImplementedError("quantile")
+
+    @dispatch
+    def quantile(
+        self: Tensor,
+        q: float,
+        dim: Optional[int] = None,
+        keepdim: bool = False,
+        *,
+        interpolation: str = "linear",
+    ) -> Tensor:
+        raise NotImplementedError("quantile")
+
+    def rad2deg(self: Tensor) -> Tensor:
+        raise NotImplementedError("rad2deg")
+
+    def rad2deg_(self: Tensor) -> Tensor:
+        raise NotImplementedError("rad2deg_")
+
+    @dispatch
+    def random_(self: Tensor, *, generator: Optional[Generator] = None) -> Tensor:
+        raise NotImplementedError("random_")
+
+    @dispatch
+    def random_(
+        self: Tensor,
+        from_: int,
+        to: Optional[int],
+        *,
+        generator: Optional[Generator] = None,
+    ) -> Tensor:
+        raise NotImplementedError("random_")
+
+    @dispatch
+    def random_(
+        self: Tensor, to: int, *, generator: Optional[Generator] = None
+    ) -> Tensor:
+        raise NotImplementedError("random_")
+
+    def ravel(self: Tensor) -> Tensor:
+        raise NotImplementedError("ravel")
+
+    def reciprocal(self: Tensor) -> Tensor:
+        return pi.reciprocal(self)
+
+    def reciprocal_(self: Tensor) -> Tensor:
+        return pi.reciprocal_(self)
+
+    def refine_names(
+        self: Tensor, names: Sequence[Union[str, ellipsis, None]]
+    ) -> Tensor:
+        raise NotImplementedError("refine_names")
+
+    def relu(self: Tensor) -> Tensor:
+        return pi.relu(self)
+
+    def relu_(self: Tensor) -> Tensor:
+        return pi.relu_(self)
+
+    @dispatch
+    def remainder(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("remainder")
+
+    @dispatch
+    def remainder(self: Tensor, other: Number) -> Tensor:
+        return pi.remainder(self, other)
+
+    @dispatch
+    def remainder_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("remainder_")
+
+    @dispatch
+    def remainder_(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("remainder_")
+
+    def rename(
+        self: Tensor, names: Optional[Sequence[Union[str, ellipsis, None]]]
+    ) -> Tensor:
+        raise NotImplementedError("rename")
+
+    def rename_(
+        self: Tensor, names: Optional[Sequence[Union[str, ellipsis, None]]]
+    ) -> Tensor:
+        raise NotImplementedError("rename_")
+
+    def renorm(self: Tensor, p: Number, dim: int, maxnorm: Number) -> Tensor:
+        raise NotImplementedError("renorm")
+
+    def renorm_(self: Tensor, p: Number, dim: int, maxnorm: Number) -> Tensor:
+        raise NotImplementedError("renorm_")
+
+    @dispatch
+    def repeat(self: Tensor, repeats: List[int]) -> Tensor:
+        return pi.repeat(self, repeats)
+
+    @dispatch
+    def repeat(self: Tensor, *repeats: int) -> Tensor:
+        return pi.repeat(self, *repeats)
+
+    @dispatch
+    def repeat_interleave(
+        self: Tensor,
+        repeats: Tensor,
+        dim: Optional[int] = None,
+        *,
+        output_size: Optional[int] = None,
+    ) -> Tensor:
+        raise NotImplementedError("repeat_interleave")
+
+    @dispatch
+    def repeat_interleave(
+        self: Tensor,
+        repeats: int,
+        dim: Optional[int] = None,
+        *,
+        output_size: Optional[int] = None,
+    ) -> Tensor:
+        raise NotImplementedError("repeat_interleave")
+
+    def requires_grad_(self: Tensor, mode: bool = True) -> Tensor:
+        raise NotImplementedError("requires_grad_")
+
+    @dispatch
+    def reshape(self: Tensor, shape: List[int]) -> Tensor:
+        return pi.reshape(self, shape)
+
+    @dispatch
+    def reshape(self: Tensor, *shape: int) -> Tensor:
+        return pi.reshape(self, shape)
+
+    def reshape_as(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("reshape_as")
+
+    @dispatch
+    def resize_(
+        self: Tensor, size: List[int], *, memory_format: Optional[memory_format] = None
+    ) -> Tensor:
+        return pi.resize_(self, size, memory_format)
+
+    @dispatch
+    def resize_(
+        self: Tensor, *size: int, memory_format: Optional[memory_format] = None
+    ) -> Tensor:
+        raise NotImplementedError("resize_")
+
+    def resize_as_(
+        self: Tensor,
+        the_template: Tensor,
+        *,
+        memory_format: Optional[memory_format] = None,
+    ) -> Tensor:
+        raise NotImplementedError("resize_as_")
+
+    def resize_as_sparse_(self: Tensor, the_template: Tensor) -> Tensor:
+        raise NotImplementedError("resize_as_sparse_")
+
+    def resolve_conj(self: Tensor) -> Tensor:
+        raise NotImplementedError("resolve_conj")
+
+    def resolve_neg(self: Tensor) -> Tensor:
+        raise NotImplementedError("resolve_neg")
+
+    def retain_grad(self: Tensor) -> None:
+        raise NotImplementedError("retain_grad")
+
+    def roll(
+        self: Tensor, shifts: Union[int, Size], dims: Union[int, Size] = ()
+    ) -> Tensor:
+        return pi.roll(self, shifts, dims)
+
+    def rot90(self: Tensor, k: int = 1, dims: Size = (0, 1)) -> Tensor:
+        raise NotImplementedError("rot90")
+
+    @dispatch
+    def round(self: Tensor) -> Tensor:
+        return pi.round(self)
+
+    @dispatch
+    def round(self: Tensor, *, decimals: int) -> Tensor:
+        raise NotImplementedError("round")
+
+    @dispatch
+    def round_(self: Tensor) -> Tensor:
+        return pi.round_(self)
+
+    @dispatch
+    def round_(self: Tensor, *, decimals: int) -> Tensor:
+        raise NotImplementedError("round_")
+
+    def row_indices(self: Tensor) -> Tensor:
+        raise NotImplementedError("row_indices")
+
+    def rsqrt(self: Tensor) -> Tensor:
+        return pi.rsqrt(self)
+
+    def rsqrt_(self: Tensor) -> Tensor:
+        return pi.rsqrt_(self)
+
+    @dispatch
+    def scatter(self: Tensor, dim: int, index: Tensor, src: Tensor) -> Tensor:
+        raise NotImplementedError("scatter")
+
+    @dispatch
+    def scatter(
+        self: Tensor, dim: int, index: Tensor, src: Tensor, *, reduce: str
+    ) -> Tensor:
+        raise NotImplementedError("scatter")
+
+    @dispatch
+    def scatter(
+        self: Tensor, dim: int, index: Tensor, value: Number, *, reduce: str
+    ) -> Tensor:
+        raise NotImplementedError("scatter")
+
+    @dispatch
+    def scatter(
+        self: Tensor, dim: Union[str, ellipsis, None], index: Tensor, src: Tensor
+    ) -> Tensor:
+        raise NotImplementedError("scatter")
+
+    @dispatch
+    def scatter(self: Tensor, dim: int, index: Tensor, value: Number) -> Tensor:
+        raise NotImplementedError("scatter")
+
+    @dispatch
+    def scatter(
+        self: Tensor, dim: Union[str, ellipsis, None], index: Tensor, value: Number
+    ) -> Tensor:
+        raise NotImplementedError("scatter")
+
+    @dispatch
+    def scatter_(self: Tensor, dim: int, index: Tensor, src: Tensor) -> Tensor:
+        raise NotImplementedError("scatter_")
+
+    @dispatch
+    def scatter_(
+        self: Tensor, dim: int, index: Tensor, src: Tensor, *, reduce: str
+    ) -> Tensor:
+        raise NotImplementedError("scatter_")
+
+    @dispatch
+    def scatter_(
+        self: Tensor, dim: int, index: Tensor, value: Number, *, reduce: str
+    ) -> Tensor:
+        raise NotImplementedError("scatter_")
+
+    @dispatch
+    def scatter_(self: Tensor, dim: int, index: Tensor, value: Number) -> Tensor:
+        raise NotImplementedError("scatter_")
+
+    @dispatch
+    def scatter_add(self: Tensor, dim: int, index: Tensor, src: Tensor) -> Tensor:
+        return pi.scatter_add(self, dim, index, src)
+
+    @dispatch
+    def scatter_add(
+        self: Tensor, dim: Union[str, ellipsis, None], index: Tensor, src: Tensor
+    ) -> Tensor:
+        raise NotImplementedError("scatter_add")
+
+    def scatter_add_(self: Tensor, dim: int, index: Tensor, src: Tensor) -> Tensor:
+        raise NotImplementedError("scatter_add_")
+
+    def scatter_reduce(
+        self: Tensor,
+        dim: int,
+        index: Tensor,
+        src: Tensor,
+        reduce: str,
+        *,
+        include_self: bool = True,
+    ) -> Tensor:
+        raise NotImplementedError("scatter_reduce")
+
+    def scatter_reduce_(
+        self: Tensor,
+        dim: int,
+        index: Tensor,
+        src: Tensor,
+        reduce: str,
+        *,
+        include_self: bool = True,
+    ) -> Tensor:
+        raise NotImplementedError("scatter_reduce_")
+
+    @dispatch
+    def select(self: Tensor, dim: int, index: int) -> Tensor:
+        return pi.select(self, dim, index)
+
+    @dispatch
+    def select(self: Tensor, dim: Union[str, ellipsis, None], index: int) -> Tensor:
+        raise NotImplementedError("select")
+
+    def select_scatter(self: Tensor, src: Tensor, dim: int, index: int) -> Tensor:
+        return pi.select_scatter(self, src, dim, index)
+
+    def sgn(self: Tensor) -> Tensor:
+        raise NotImplementedError("sgn")
+
+    def sgn_(self: Tensor) -> Tensor:
+        raise NotImplementedError("sgn_")
+
+    def short(self: Tensor) -> Tensor:
+        raise NotImplementedError("short")
+
+    def sigmoid(self: Tensor) -> Tensor:
+        return pi.sigmoid(self)
+
+    def sigmoid_(self: Tensor) -> Tensor:
+        return pi.sigmoid_(self)
+
+    def sign(self: Tensor) -> Tensor:
+        raise NotImplementedError("sign")
+
+    def sign_(self: Tensor) -> Tensor:
+        raise NotImplementedError("sign_")
+
+    def signbit(self: Tensor) -> Tensor:
+        raise NotImplementedError("signbit")
+
+    def sin(self: Tensor) -> Tensor:
+        return pi.sin(self)
+
+    def sin_(self: Tensor) -> Tensor:
+        return pi.sin_(self)
+
+    def sinc(self: Tensor) -> Tensor:
+        raise NotImplementedError("sinc")
+
+    def sinc_(self: Tensor) -> Tensor:
+        raise NotImplementedError("sinc_")
+
+    def sinh(self: Tensor) -> Tensor:
+        raise NotImplementedError("sinh")
+
+    def sinh_(self: Tensor) -> Tensor:
+        raise NotImplementedError("sinh_")
+
+    @dispatch
+    def size(self: Tensor) -> Size:
+        return pi.size(self)
+
+    @dispatch
+    def size(self: Tensor, dim: int) -> int:
+        return pi.size(self, dim)
+
+    def slice_scatter(
+        self: Tensor,
+        src: Tensor,
+        dim: int = 0,
+        start: Optional[int] = None,
+        end: Optional[int] = None,
+        step: int = 1,
+    ) -> Tensor:
+        return pi.slice_scatter(self, src, dim, start, end, step)
+
+    def slogdet(self: Tensor) -> ComplexReturnType("slogdet"):
+        raise NotImplementedError("slogdet")
+
+    def smm(self: Tensor, mat2: Tensor) -> Tensor:
+        raise NotImplementedError("smm")
+
+    @dispatch
+    def softmax(self: Tensor, dim: int, dtype: Optional[pi_dtype] = None) -> Tensor:
+        return pi.softmax(self, dim, dtype)
+
+    @dispatch
+    def softmax(
+        self: Tensor,
+        dim: Union[str, ellipsis, None],
+        *,
+        dtype: Optional[pi_dtype] = None,
+    ) -> Tensor:
+        raise NotImplementedError("softmax")
+
+    @dispatch
+    def sort(
+        self: Tensor, *, stable: Optional[bool], dim: int = -1, descending: bool = False
+    ) -> ComplexReturnType("sort"):
+        raise NotImplementedError("sort")
+
+    @dispatch
+    def sort(
+        self: Tensor, dim: int = -1, descending: bool = False
+    ) -> ComplexReturnType("sort"):
+        raise NotImplementedError("sort")
+
+    @dispatch
+    def sort(
+        self: Tensor,
+        *,
+        stable: Optional[bool],
+        dim: Union[str, ellipsis, None],
+        descending: bool = False,
+    ) -> ComplexReturnType("sort"):
+        raise NotImplementedError("sort")
+
+    @dispatch
+    def sort(
+        self: Tensor, dim: Union[str, ellipsis, None], descending: bool = False
+    ) -> ComplexReturnType("sort"):
+        raise NotImplementedError("sort")
+
+    def sparse_dim(self: Tensor) -> int:
+        raise NotImplementedError("sparse_dim")
+
+    def sparse_mask(self: Tensor, mask: Tensor) -> Tensor:
+        raise NotImplementedError("sparse_mask")
+
+    def sparse_resize_(
+        self: Tensor, size: Size, sparse_dim: int, dense_dim: int
+    ) -> Tensor:
+        raise NotImplementedError("sparse_resize_")
+
+    def sparse_resize_and_clear_(
+        self: Tensor, size: Size, sparse_dim: int, dense_dim: int
+    ) -> Tensor:
+        raise NotImplementedError("sparse_resize_and_clear_")
+
+    @dispatch
+    def split(self: Tensor, split_size: int, dim: int = 0) -> Sequence[Tensor]:
+        raise NotImplementedError("split")
+
+    @dispatch
+    def split(
+        self: Tensor, split_size: Tuple[int, ...], dim: int = 0
+    ) -> Sequence[Tensor]:
+        raise NotImplementedError("split")
+
+    def split_with_sizes(
+        self: Tensor, split_sizes: List[int], dim: int = 0
+    ) -> List[Tensor]:
+        raise NotImplementedError("split_with_sizes")
+
+    def sqrt(self: Tensor) -> Tensor:
+        return pi.sqrt(self)
+
+    def sqrt_(self: Tensor) -> Tensor:
+        return pi.sqrt_(self)
+
+    def square(self: Tensor) -> Tensor:
+        return pi.square(self)
+
+    def square_(self: Tensor) -> Tensor:
+        return pi.square_(self)
+
+    @dispatch
+    def squeeze(self: Tensor) -> Tensor:
+        return pi.squeeze(self)
+
+    @dispatch
+    def squeeze(self: Tensor, dim: int) -> Tensor:
+        return pi.squeeze(self, dim)
+
+    @dispatch
+    def squeeze(self: Tensor, dim: Union[str, ellipsis, None]) -> Tensor:
+        raise NotImplementedError("squeeze")
+
+    @dispatch
+    def squeeze_(self: Tensor) -> Tensor:
+        raise NotImplementedError("squeeze_")
+
+    @dispatch
+    def squeeze_(self: Tensor, dim: int) -> Tensor:
+        raise NotImplementedError("squeeze_")
+
+    @dispatch
+    def squeeze_(self: Tensor, dim: Union[str, ellipsis, None]) -> Tensor:
+        raise NotImplementedError("squeeze_")
+
+    def sspaddmm(
+        self: Tensor, mat1: Tensor, mat2: Tensor, *, beta: Number = 1, alpha: Number = 1
+    ) -> Tensor:
+        raise NotImplementedError("sspaddmm")
+
+    @dispatch
+    def std(
+        self: Tensor,
+        dim: Optional[Union[int, Size]],
+        unbiased: bool = True,
+        keepdim: bool = False,
+    ) -> Tensor:
+        return pi.std(self, dim, unbiased, keepdim)
+
+    @dispatch
+    def std(
+        self: Tensor,
+        dim: Optional[Union[int, Size]] = None,
+        *,
+        correction: Optional[int] = None,
+        keepdim: bool = False,
+    ) -> Tensor:
+        return pi.std(self, dim, correction, keepdim)
+
+    @dispatch
+    def std(self: Tensor, unbiased: bool = True) -> Tensor:
+        return pi.std(self, unbiased)
+
+    @dispatch
+    def std(
+        self: Tensor,
+        dim: Sequence[Union[str, ellipsis, None]],
+        unbiased: bool = True,
+        keepdim: bool = False,
+    ) -> Tensor:
+        raise NotImplementedError("std")
+
+    @dispatch
+    def std(
+        self: Tensor,
+        dim: Sequence[Union[str, ellipsis, None]],
+        *,
+        correction: Optional[int] = None,
+        keepdim: bool = False,
+    ) -> Tensor:
+        raise NotImplementedError("std")
+
+    def storage_offset(self: Tensor) -> int:
+        raise NotImplementedError("storage_offset")
+
+    @dispatch
+    def stride(self: Tensor) -> Tuple[int, ...]:
+        raise NotImplementedError("stride")
+
+    @dispatch
+    def stride(self: Tensor, _int) -> int:
+        raise NotImplementedError("stride")
+
+    def sub(
+        self: Tensor,
+        other: Union[Tensor, Number],
+        *,
+        alpha: Optional[Number] = 1,
+        out: Optional[Tensor] = None,
+    ) -> Tensor:
+        if out is not None:
+            raise NotImplementedError("sub.out variant")
+        return pi.sub(self, other, alpha)
+
+    def sub_(
+        self: Tensor, other: Union[Tensor, Number], *, alpha: Optional[Number] = 1
+    ) -> Tensor:
+        return pi.sub_(self, other, alpha)
+
+    @dispatch
+    def subtract(self: Tensor, other: Tensor, *, alpha: Number = 1) -> Tensor:
+        raise NotImplementedError("subtract")
+
+    @dispatch
+    def subtract(self: Tensor, other: Number, alpha: Number = 1) -> Tensor:
+        raise NotImplementedError("subtract")
+
+    @dispatch
+    def subtract_(self: Tensor, other: Tensor, *, alpha: Number = 1) -> Tensor:
+        raise NotImplementedError("subtract_")
+
+    @dispatch
+    def subtract_(self: Tensor, other: Number, alpha: Number = 1) -> Tensor:
+        raise NotImplementedError("subtract_")
+
+    @dispatch
+    def sum(self: Tensor, *, dtype: Optional[pi_dtype] = None) -> Tensor:
+        return pi.sum(self, dtype)
+
+    @dispatch
+    def sum(
+        self: Tensor,
+        dim: Optional[Union[int, Size]],
+        keepdim: bool = False,
+        *,
+        dtype: Optional[pi_dtype] = None,
+    ) -> Tensor:
+        return pi.sum(self, dim, keepdim, dtype)
+
+    @dispatch
+    def sum(
+        self: Tensor,
+        dim: Sequence[Union[str, ellipsis, None]],
+        keepdim: bool = False,
+        *,
+        dtype: Optional[pi_dtype] = None,
+    ) -> Tensor:
+        raise NotImplementedError("sum")
+
+    @dispatch
+    def sum_to_size(self: Tensor, size: Size) -> Tensor:
+        raise NotImplementedError("sum_to_size")
+
+    @dispatch
+    def sum_to_size(self: Tensor, *size: int) -> Tensor:
+        raise NotImplementedError("sum_to_size")
+
+    def svd(
+        self: Tensor, some: bool = True, compute_uv: bool = True
+    ) -> ComplexReturnType("svd"):
+        raise NotImplementedError("svd")
+
+    def swapaxes(self: Tensor, axis0: int, axis1: int) -> Tensor:
+        raise NotImplementedError("swapaxes")
+
+    def swapaxes_(self: Tensor, axis0: int, axis1: int) -> Tensor:
+        raise NotImplementedError("swapaxes_")
+
+    def swapdims(self: Tensor, dim0: int, dim1: int) -> Tensor:
+        raise NotImplementedError("swapdims")
+
+    def swapdims_(self: Tensor, dim0: int, dim1: int) -> Tensor:
+        raise NotImplementedError("swapdims_")
+
+    def symeig(
+        self: Tensor, eigenvectors: bool = False, upper: bool = True
+    ) -> ComplexReturnType("symeig"):
+        raise NotImplementedError("symeig")
+
+    def t(self: Tensor) -> Tensor:
+        return pi.t(self)
+
+    def t_(self: Tensor) -> Tensor:
+        raise NotImplementedError("t_")
+
+    def take(self: Tensor, index: Tensor) -> Tensor:
+        raise NotImplementedError("take")
+
+    def take_along_dim(
+        self: Tensor, indices: Tensor, dim: Optional[int] = None
+    ) -> Tensor:
+        raise NotImplementedError("take_along_dim")
+
+    def tan(self: Tensor) -> Tensor:
+        raise NotImplementedError("tan")
+
+    def tan_(self: Tensor) -> Tensor:
+        raise NotImplementedError("tan_")
+
+    def tanh(self: Tensor) -> Tensor:
+        return pi.tanh(self)
+
+    def tanh_(self: Tensor) -> Tensor:
+        return pi.tanh_(self)
+
+    @dispatch
+    def tensor_split(self: Tensor, indices: List[int], dim: int = 0) -> List[Tensor]:
+        raise NotImplementedError("tensor_split")
+
+    @dispatch
+    def tensor_split(
+        self: Tensor, tensor_indices_or_sections: Tensor, dim: int = 0
+    ) -> List[Tensor]:
+        raise NotImplementedError("tensor_split")
+
+    @dispatch
+    def tensor_split(self: Tensor, sections: int, dim: int = 0) -> List[Tensor]:
+        raise NotImplementedError("tensor_split")
+
+    @dispatch
+    def tile(self: Tensor, dims: Size) -> Tensor:
+        raise NotImplementedError("tile")
+
+    @dispatch
+    def tile(self: Tensor, *dims: int) -> Tensor:
+        raise NotImplementedError("tile")
+
+    @dispatch
+    def to(
+        self: Tensor, dtype: pi_dtype, non_blocking: bool = False, copy: bool = False
+    ) -> Tensor:
+        return pi.to(self, dtype, non_blocking, copy)
+
+    @dispatch
+    def to(
+        self: Tensor,
+        device: Optional[Union[device, str]] = None,
+        dtype: Optional[pi_dtype] = None,
+        non_blocking: bool = False,
+        copy: bool = False,
+    ) -> Tensor:
+        return pi.to(self, device, dtype, non_blocking, copy)
+
+    @dispatch
+    def to(
+        self: Tensor, other: Tensor, non_blocking: bool = False, copy: bool = False
+    ) -> Tensor:
+        return pi.to(self, other, non_blocking, copy)
+
+    def to_dense(self: Tensor, dtype: Optional[pi_dtype] = None) -> Tensor:
+        raise NotImplementedError("to_dense")
+
+    def to_mkldnn(self: Tensor, dtype: Optional[pi_dtype] = None) -> Tensor:
+        raise NotImplementedError("to_mkldnn")
+
+    def to_padded_tensor(
+        self: Tensor, padding: float, output_size: Optional[List[int]] = None
+    ) -> Tensor:
+        raise NotImplementedError("to_padded_tensor")
+
+    @dispatch
+    def to_sparse(
+        self: Tensor,
+        *,
+        layout: Optional[layout] = None,
+        blocksize: Optional[Union[int, Size]] = None,
+    ) -> Tensor:
+        raise NotImplementedError("to_sparse")
+
+    @dispatch
+    def to_sparse(self: Tensor, sparse_dim: int) -> Tensor:
+        raise NotImplementedError("to_sparse")
+
+    @dispatch
+    def to_sparse_bsc(self: Tensor, blocksize: Union[int, Size]) -> Tensor:
+        raise NotImplementedError("to_sparse_bsc")
+
+    @dispatch
+    def to_sparse_bsc(self: Tensor, *blocksize: int) -> Tensor:
+        raise NotImplementedError("to_sparse_bsc")
+
+    @dispatch
+    def to_sparse_bsr(self: Tensor, blocksize: Union[int, Size]) -> Tensor:
+        raise NotImplementedError("to_sparse_bsr")
+
+    @dispatch
+    def to_sparse_bsr(self: Tensor, *blocksize: int) -> Tensor:
+        raise NotImplementedError("to_sparse_bsr")
+
+    def to_sparse_csc(self: Tensor) -> Tensor:
+        raise NotImplementedError("to_sparse_csc")
+
+    def to_sparse_csr(self: Tensor) -> Tensor:
+        raise NotImplementedError("to_sparse_csr")
+
+    def tolist(self: Tensor) -> List:
+        raise NotImplementedError("tolist")
+
+    def topk(
+        self: Tensor, k: int, dim: int = -1, largest: bool = True, sorted: bool = True
+    ) -> ComplexReturnType("topk"):
+        return pi.topk(self, k, dim, largest, sorted)
+
+    def trace(self: Tensor) -> Tensor:
+        raise NotImplementedError("trace")
+
+    @dispatch
+    def transpose(self: Tensor, dim0: int, dim1: int) -> Tensor:
+        return pi.transpose(self, dim0, dim1)
+
+    @dispatch
+    def transpose(
+        self: Tensor, dim0: Union[str, ellipsis, None], dim1: Union[str, ellipsis, None]
+    ) -> Tensor:
+        raise NotImplementedError("transpose")
+
+    def transpose_(self: Tensor, dim0: int, dim1: int) -> Tensor:
+        raise NotImplementedError("transpose_")
+
+    def triangular_solve(
+        self: Tensor,
+        A: Tensor,
+        upper: bool = True,
+        transpose: bool = False,
+        unitriangular: bool = False,
+    ) -> ComplexReturnType("triangular_solve"):
+        raise NotImplementedError("triangular_solve")
+
+    def tril(self: Tensor, diagonal: int = 0) -> Tensor:
+        raise NotImplementedError("tril")
+
+    def tril_(self: Tensor, diagonal: int = 0) -> Tensor:
+        raise NotImplementedError("tril_")
+
+    def triu(self: Tensor, diagonal: int = 0) -> Tensor:
+        return pi.triu(self, diagonal)
+
+    def triu_(self: Tensor, diagonal: int = 0) -> Tensor:
+        return pi.triu_(self, diagonal)
+
+    def true_divide(
+        self: Tensor, other: Union[Tensor, Number], *, out: Optional[Tensor] = None
+    ) -> Tensor:
+        if out is not None:
+            raise NotImplementedError("true_divide.out variant")
+        raise NotImplementedError("true_divide")
+
+    def true_divide_(self: Tensor, other: Union[Tensor, Number]) -> Tensor:
+        raise NotImplementedError("true_divide_")
+
+    def trunc(self: Tensor) -> Tensor:
+        raise NotImplementedError("trunc")
+
+    def trunc_(self: Tensor) -> Tensor:
+        raise NotImplementedError("trunc_")
+
+    @dispatch
+    def unbind(self: Tensor, dim: int = 0) -> List[Tensor]:
+        raise NotImplementedError("unbind")
+
+    @dispatch
+    def unbind(self: Tensor, dim: Union[str, ellipsis, None]) -> List[Tensor]:
+        raise NotImplementedError("unbind")
+
+    @dispatch
+    def unflatten(
+        self: Tensor,
+        dim: Union[str, ellipsis, None],
+        sizes: Size,
+        names: Sequence[Union[str, ellipsis, None]],
+    ) -> Tensor:
+        raise NotImplementedError("unflatten")
+
+    @dispatch
+    def unflatten(self: Tensor, dim: int, sizes: Size) -> Tensor:
+        raise NotImplementedError("unflatten")
+
+    def unfold(self: Tensor, dimension: int, size: int, step: int) -> Tensor:
+        raise NotImplementedError("unfold")
+
+    def uniform_(
+        self: Tensor,
+        from_: float = 0,
+        to: float = 1,
+        *,
+        generator: Optional[Generator] = None,
+    ) -> Tensor:
+        return pi.uniform_(self, from_, to, generator)
+
+    def unsafe_chunk(self: Tensor, chunks: int, dim: int = 0) -> List[Tensor]:
+        raise NotImplementedError("unsafe_chunk")
+
+    def unsafe_split(self: Tensor, split_size: int, dim: int = 0) -> List[Tensor]:
+        raise NotImplementedError("unsafe_split")
+
+    def unsafe_split_with_sizes(
+        self: Tensor, split_sizes: List[int], dim: int = 0
+    ) -> List[Tensor]:
+        raise NotImplementedError("unsafe_split_with_sizes")
+
+    def unsqueeze(self: Tensor, dim: int) -> Tensor:
+        return pi.unsqueeze(self, dim)
+
+    def unsqueeze_(self: Tensor, dim: int) -> Tensor:
+        return pi.unsqueeze_(self, dim)
+
+    def values(self: Tensor) -> Tensor:
+        raise NotImplementedError("values")
+
+    @dispatch
+    def var(
+        self: Tensor,
+        dim: Optional[Union[int, Size]],
+        unbiased: bool = True,
+        keepdim: bool = False,
+    ) -> Tensor:
+        return pi.var(self, dim, unbiased, keepdim)
+
+    @dispatch
+    def var(
+        self: Tensor,
+        dim: Optional[Union[int, Size]] = None,
+        *,
+        correction: Optional[int] = None,
+        keepdim: bool = False,
+    ) -> Tensor:
+        return pi.var(self, dim, correction, keepdim)
+
+    @dispatch
+    def var(self: Tensor, unbiased: bool = True) -> Tensor:
+        return pi.var(self, unbiased)
+
+    @dispatch
+    def var(
+        self: Tensor,
+        dim: Sequence[Union[str, ellipsis, None]],
+        unbiased: bool = True,
+        keepdim: bool = False,
+    ) -> Tensor:
+        raise NotImplementedError("var")
+
+    @dispatch
+    def var(
+        self: Tensor,
+        dim: Sequence[Union[str, ellipsis, None]],
+        *,
+        correction: Optional[int] = None,
+        keepdim: bool = False,
+    ) -> Tensor:
+        raise NotImplementedError("var")
+
+    def vdot(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("vdot")
+
+    @dispatch
+    def view(self: Tensor, dtype: pi_dtype) -> Tensor:
+        raise NotImplementedError("view")
+
+    @dispatch
+    def view(self: Tensor, size: List[int]) -> Tensor:
+        return pi.view(self, size)
+
+    @dispatch
+    def view(self: Tensor, *size: int) -> Tensor:
+        return pi.view(self, size)
+
+    def view_as(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("view_as")
+
+    @dispatch
+    def vsplit(self: Tensor, sections: int) -> List[Tensor]:
+        raise NotImplementedError("vsplit")
+
+    @dispatch
+    def vsplit(self: Tensor, indices: Size) -> List[Tensor]:
+        raise NotImplementedError("vsplit")
+
+    @dispatch
+    def vsplit(self: Tensor, *indices: int) -> List[Tensor]:
+        raise NotImplementedError("vsplit")
+
+    def where(self: Tensor, condition: Tensor, other: Tensor) -> Tensor:
+        return pi.where(self, condition, other)
+
+    @dispatch
+    def xlogy(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("xlogy")
+
+    @dispatch
+    def xlogy(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("xlogy")
+
+    @dispatch
+    def xlogy_(self: Tensor, other: Tensor) -> Tensor:
+        raise NotImplementedError("xlogy_")
+
+    @dispatch
+    def xlogy_(self: Tensor, other: Number) -> Tensor:
+        raise NotImplementedError("xlogy_")
+
+    def zero_(self: Tensor) -> Tensor:
+        return pi.zero_(self)
 
 
 def from_numpy(arr: np.ndarray):
@@ -2143,10 +3712,8 @@ def from_numpy(arr: np.ndarray):
 def empty(shape: Tuple[int, ...], dtype: "pi.dtype" = None, **kwargs) -> Tensor:
     if np.prod(shape) == 0:
         return Tensor(None)
-    else:
-        if dtype is not None:
-            dtype = dtype.to_np_type()
-
+    elif dtype is not None:
+        dtype = dtype.to_np_type()
     return from_numpy(np.empty(shape, dtype))
 
 
@@ -2155,6 +3722,8 @@ def randint(low: int, high: int, size: Tuple[int, ...]) -> Tensor:
 
 
 def randn(*size: Tuple[int, ...]) -> Tensor:
+    if size == ((),):
+        return from_numpy(np.random.randn())
     return from_numpy(np.random.randn(*size))
 
 
@@ -2163,17 +3732,21 @@ def uniform(low: float, high: float, size: Tuple[int, ...]) -> Tensor:
 
 
 def rand(*size: Tuple[int, ...], **kwargs) -> Tensor:
-    dtype = kwargs.get("dtype", None)
-    if dtype is not None:
-        dtype = dtype.to_np_type()
+    if size == ((),):
+        return from_numpy(np.random.rand())
+    if isinstance(size[0], tuple):
+        assert len(size) == 1, f"malformed size tuple {size}"
+        size = size[0]
     return from_numpy(np.random.rand(*size))
 
 
 def ones(*size: Tuple[int, ...], **kwargs) -> Tensor:
-    # dtype: "pi.dtype" = None, _device: Any = None
     dtype = kwargs.get("dtype", None)
     if dtype is not None:
         dtype = dtype.to_np_type()
+    if isinstance(size[0], tuple):
+        assert len(size) == 1, f"malformed size tuple {size}"
+        size = size[0]
     return from_numpy(np.ones(size, dtype=dtype))
 
 
@@ -2187,7 +3760,6 @@ def zeros(*size: Tuple[int, ...], **kwargs) -> Tensor:
 def tensor(data: Any, dtype: Optional["pi.dtype"] = None) -> Tensor:
     if dtype is not None:
         dtype = dtype.to_np_type()
-
     return from_numpy(np.array(data, dtype=dtype))
 
 
@@ -2196,9 +3768,18 @@ def LongTensor(data: Any) -> Tensor:
 
 
 def clone(x: Tensor, **kwargs):
-    # TODO(max): is this necessary?
     warnings.warn(f"not actually cloning")
     return x
+
+
+def torch_cast(x: Tensor, dtype: pi_dtype):
+    assert is_a_torch_tensor(x), f"x should be a Tensor but is {type(x)}"
+    return Tensor(torch_dialect.AtenToDtypeOp(x, dtype.value, False, False, None))
+
+
+def ScalarImplicit(x: Tensor):
+    assert is_a_torch_tensor(x), f"x should be a Tensor but is {type(x)}"
+    return Tensor(torch_dialect.AtenScalarImplicitOp(x))
 
 
 __all__ = [
@@ -2213,4 +3794,5 @@ __all__ = [
     "Tensor",
     "LongTensor",
     "zeros",
+    "ScalarImplicit",
 ]

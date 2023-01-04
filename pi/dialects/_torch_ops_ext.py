@@ -1,5 +1,4 @@
 try:
-    # from pi import Tensor, Number
     from torch_mlir.ir import *
     from torch_mlir.dialects._ods_common import (
         get_default_loc_context,
@@ -10,7 +9,9 @@ try:
 except ImportError as e:
     raise RuntimeError("Error loading imports from extension module") from e
 
-from typing import List, Optional, Any
+from numbers import Number
+from typing import List, Optional, Any, Generator, Dict
+Device = str
 
 
 class AtenTanhOp:
@@ -38,7 +39,7 @@ class AtenTanh_Op:
         
     
 class AtenHardtanhOp:
-    def __init__(self, self_: Value, min_val: "Number", max_val: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, min_val: Number, max_val: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -64,7 +65,7 @@ class AtenHardtanhOp:
         
     
 class AtenHardtanh_Op:
-    def __init__(self, self_: Value, min_val: "Number", max_val: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, min_val: Number, max_val: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -138,7 +139,7 @@ class AtenRelu6_Op:
         
     
 class AtenLeakyReluOp:
-    def __init__(self, self_: Value, negative_slope: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, negative_slope: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -158,7 +159,7 @@ class AtenLeakyReluOp:
         
     
 class AtenLeakyRelu_Op:
-    def __init__(self, self_: Value, negative_slope: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, negative_slope: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -982,7 +983,7 @@ class AtenNe_TensorOp:
         
     
 class AtenDivScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1002,7 +1003,7 @@ class AtenDivScalarOp:
         
     
 class AtenDiv_ScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1022,7 +1023,7 @@ class AtenDiv_ScalarOp:
         
     
 class AtenNeScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1042,7 +1043,7 @@ class AtenNeScalarOp:
         
     
 class AtenNe_ScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1062,7 +1063,7 @@ class AtenNe_ScalarOp:
         
     
 class AtenEqScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1082,7 +1083,7 @@ class AtenEqScalarOp:
         
     
 class AtenEq_ScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1102,7 +1103,7 @@ class AtenEq_ScalarOp:
         
     
 class AtenGtScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1122,7 +1123,7 @@ class AtenGtScalarOp:
         
     
 class AtenGt_ScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1142,7 +1143,7 @@ class AtenGt_ScalarOp:
         
     
 class AtenGeScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1162,7 +1163,7 @@ class AtenGeScalarOp:
         
     
 class AtenGe_ScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1182,7 +1183,7 @@ class AtenGe_ScalarOp:
         
     
 class AtenLtScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1202,7 +1203,7 @@ class AtenLtScalarOp:
         
     
 class AtenLt_ScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1222,7 +1223,7 @@ class AtenLt_ScalarOp:
         
     
 class AtenLeScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1242,7 +1243,7 @@ class AtenLeScalarOp:
         
     
 class AtenLe_ScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1262,7 +1263,7 @@ class AtenLe_ScalarOp:
         
     
 class AtenFmodScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1282,7 +1283,7 @@ class AtenFmodScalarOp:
         
     
 class AtenFmod_ScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1302,7 +1303,7 @@ class AtenFmod_ScalarOp:
         
     
 class AtenMaskedFillScalarOp:
-    def __init__(self, self_: Value, mask: Value, value: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, mask: Value, value: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1328,7 +1329,7 @@ class AtenMaskedFillScalarOp:
         
     
 class AtenMaskedFill_ScalarOp:
-    def __init__(self, self_: Value, mask: Value, value: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, mask: Value, value: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1402,7 +1403,7 @@ class AtenMaskedFill_TensorOp:
         
     
 class AtenClampOp:
-    def __init__(self, self_: Value, min: Optional["Number"], max: Optional["Number"], *, loc=None, ip=None):
+    def __init__(self, self_: Value, min: Optional[Number], max: Optional[Number], *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1434,7 +1435,7 @@ class AtenClampOp:
         
     
 class AtenClamp_Op:
-    def __init__(self, self_: Value, min: Optional["Number"], max: Optional["Number"], *, loc=None, ip=None):
+    def __init__(self, self_: Value, min: Optional[Number], max: Optional[Number], *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1466,7 +1467,7 @@ class AtenClamp_Op:
         
     
 class AtenClampMinOp:
-    def __init__(self, self_: Value, min: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, min: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1486,7 +1487,7 @@ class AtenClampMinOp:
         
     
 class AtenClampMin_Op:
-    def __init__(self, self_: Value, min: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, min: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1506,7 +1507,7 @@ class AtenClampMin_Op:
         
     
 class AtenClampMaxOp:
-    def __init__(self, self_: Value, max: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, max: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1526,7 +1527,7 @@ class AtenClampMaxOp:
         
     
 class AtenClampMax_Op:
-    def __init__(self, self_: Value, max: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, max: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1762,7 +1763,7 @@ class AtenBitwiseOr_TensorOp:
         
     
 class AtenThresholdOp:
-    def __init__(self, self_: Value, threshold: "Number", value: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, threshold: Number, value: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1788,7 +1789,7 @@ class AtenThresholdOp:
         
     
 class AtenThreshold_Op:
-    def __init__(self, self_: Value, threshold: "Number", value: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, threshold: Number, value: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1902,7 +1903,7 @@ class AtenZero_Op:
         
     
 class AtenFillScalarOp:
-    def __init__(self, self_: Value, value: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, value: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -1922,7 +1923,7 @@ class AtenFillScalarOp:
         
     
 class AtenFill_ScalarOp:
-    def __init__(self, self_: Value, value: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, value: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2072,7 +2073,7 @@ class AtenMul_TensorOp:
         
     
 class AtenAddTensorOp:
-    def __init__(self, self_: Value, other: Value, alpha: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Value, alpha: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2098,7 +2099,7 @@ class AtenAddTensorOp:
         
     
 class AtenAdd_TensorOp:
-    def __init__(self, self_: Value, other: Value, alpha: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Value, alpha: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2124,7 +2125,7 @@ class AtenAdd_TensorOp:
         
     
 class AtenSubTensorOp:
-    def __init__(self, self_: Value, other: Value, alpha: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Value, alpha: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2150,7 +2151,7 @@ class AtenSubTensorOp:
         
     
 class AtenSub_TensorOp:
-    def __init__(self, self_: Value, other: Value, alpha: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Value, alpha: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2176,7 +2177,7 @@ class AtenSub_TensorOp:
         
     
 class AtenAddScalarOp:
-    def __init__(self, self_: Value, other: "Number", alpha: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, alpha: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2202,7 +2203,7 @@ class AtenAddScalarOp:
         
     
 class AtenAdd_ScalarOp:
-    def __init__(self, self_: Value, other: "Number", alpha: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, alpha: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2228,7 +2229,7 @@ class AtenAdd_ScalarOp:
         
     
 class AtenSubScalarOp:
-    def __init__(self, self_: Value, other: "Number", alpha: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, alpha: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2254,7 +2255,7 @@ class AtenSubScalarOp:
         
     
 class AtenSub_ScalarOp:
-    def __init__(self, self_: Value, other: "Number", alpha: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, alpha: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2280,7 +2281,7 @@ class AtenSub_ScalarOp:
         
     
 class AtenMulScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2300,7 +2301,7 @@ class AtenMulScalarOp:
         
     
 class AtenMul_ScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2320,7 +2321,7 @@ class AtenMul_ScalarOp:
         
     
 class AtenAddcmulOp:
-    def __init__(self, self_: Value, tensor1: Value, tensor2: Value, value: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, tensor1: Value, tensor2: Value, value: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2352,7 +2353,7 @@ class AtenAddcmulOp:
         
     
 class AtenAddcmul_Op:
-    def __init__(self, self_: Value, tensor1: Value, tensor2: Value, value: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, tensor1: Value, tensor2: Value, value: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2384,7 +2385,7 @@ class AtenAddcmul_Op:
         
     
 class AtenAddcdivOp:
-    def __init__(self, self_: Value, tensor1: Value, tensor2: Value, value: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, tensor1: Value, tensor2: Value, value: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2416,7 +2417,7 @@ class AtenAddcdivOp:
         
     
 class AtenAddcdiv_Op:
-    def __init__(self, self_: Value, tensor1: Value, tensor2: Value, value: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, tensor1: Value, tensor2: Value, value: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2496,7 +2497,7 @@ class AtenMishOp:
         
     
 class AtenRsubScalarOp:
-    def __init__(self, self_: Value, other: "Number", alpha: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, alpha: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2542,7 +2543,7 @@ class AtenGeluOp:
         
     
 class AtenPowTensorScalarOp:
-    def __init__(self, self_: Value, exponent: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, exponent: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2580,7 +2581,7 @@ class AtenPowTensorTensorOp:
         
     
 class AtenThresholdBackwardOp:
-    def __init__(self, grad_output: Value, self_: Value, threshold: "Number", *, loc=None, ip=None):
+    def __init__(self, grad_output: Value, self_: Value, threshold: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(grad_output):
@@ -2624,7 +2625,7 @@ class AtenFloorDivideOp:
         
     
 class AtenSoftplusOp:
-    def __init__(self, self_: Value, beta: "Number", threshold: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, beta: Number, threshold: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2665,6 +2666,426 @@ class AtenPreluOp:
             
         result_type = Type.parse("!torch.vtensor")
         super(AtenPreluOp, self).__init__(result_type, self_, weight, loc=loc, ip=ip)
+        
+    
+class AtenUniformOp:
+    def __init__(self, self_: Value, from_: float, to: float, generator: Optional[Generator], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(from_):
+            from_ = torch_dialect.ConstantFloatOp(from_)
+        else:
+            from_ = get_op_result_or_value(from_)
+            assert str(from_.type) == '!torch.float', f'`from_` should be a !torch.float but is {type(from_).__module__}.{type(from_).__name__}'
+            
+        if not is_mlir_value(to):
+            to = torch_dialect.ConstantFloatOp(to)
+        else:
+            to = get_op_result_or_value(to)
+            assert str(to.type) == '!torch.float', f'`to` should be a !torch.float but is {type(to).__module__}.{type(to).__name__}'
+            
+        if not is_mlir_value(generator):
+            if generator is not None:
+                assert is_mlir_value(generator), f'`generator` should be a Value but is {type(generator).__module__}.{type(generator).__name__}'
+            else:
+                generator = torch_dialect.ConstantNoneOp()
+        else:
+            generator = get_op_result_or_value(generator)
+            # should be Generator?
+            pass
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenUniformOp, self).__init__(result_type, self_, from_, to, generator, loc=loc, ip=ip)
+        
+    
+class AtenUniform_Op:
+    def __init__(self, self_: Value, from_: float, to: float, generator: Optional[Generator], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(from_):
+            from_ = torch_dialect.ConstantFloatOp(from_)
+        else:
+            from_ = get_op_result_or_value(from_)
+            assert str(from_.type) == '!torch.float', f'`from_` should be a !torch.float but is {type(from_).__module__}.{type(from_).__name__}'
+            
+        if not is_mlir_value(to):
+            to = torch_dialect.ConstantFloatOp(to)
+        else:
+            to = get_op_result_or_value(to)
+            assert str(to.type) == '!torch.float', f'`to` should be a !torch.float but is {type(to).__module__}.{type(to).__name__}'
+            
+        if not is_mlir_value(generator):
+            if generator is not None:
+                assert is_mlir_value(generator), f'`generator` should be a Value but is {type(generator).__module__}.{type(generator).__name__}'
+            else:
+                generator = torch_dialect.ConstantNoneOp()
+        else:
+            generator = get_op_result_or_value(generator)
+            # should be Generator?
+            pass
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenUniform_Op, self).__init__(result_type, self_, from_, to, generator, loc=loc, ip=ip)
+        
+    
+class AtenRandLikeOp:
+    def __init__(self, self_: Value, dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], memory_format: Optional[int], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        if not is_mlir_value(memory_format):
+            if memory_format is not None:
+                memory_format = torch_dialect.ConstantIntOp(memory_format)
+            else:
+                memory_format = torch_dialect.ConstantNoneOp()
+        else:
+            memory_format = get_op_result_or_value(memory_format)
+            assert str(memory_format.type) == '!torch.int', f'`memory_format` should be a !torch.int but is {type(memory_format).__module__}.{type(memory_format).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenRandLikeOp, self).__init__(result_type, self_, dtype, layout, device, pin_memory, memory_format, loc=loc, ip=ip)
+        
+    
+class AtenBernoulliOp:
+    def __init__(self, self_: Value, generator: Optional[Generator], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(generator):
+            if generator is not None:
+                assert is_mlir_value(generator), f'`generator` should be a Value but is {type(generator).__module__}.{type(generator).__name__}'
+            else:
+                generator = torch_dialect.ConstantNoneOp()
+        else:
+            generator = get_op_result_or_value(generator)
+            # should be Generator?
+            pass
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenBernoulliOp, self).__init__(result_type, self_, generator, loc=loc, ip=ip)
+        
+    
+class AtenBernoulli_FloatOp:
+    def __init__(self, self_: Value, p: float, generator: Optional[Generator], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(p):
+            p = torch_dialect.ConstantFloatOp(p)
+        else:
+            p = get_op_result_or_value(p)
+            assert str(p.type) == '!torch.float', f'`p` should be a !torch.float but is {type(p).__module__}.{type(p).__name__}'
+            
+        if not is_mlir_value(generator):
+            if generator is not None:
+                assert is_mlir_value(generator), f'`generator` should be a Value but is {type(generator).__module__}.{type(generator).__name__}'
+            else:
+                generator = torch_dialect.ConstantNoneOp()
+        else:
+            generator = get_op_result_or_value(generator)
+            # should be Generator?
+            pass
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenBernoulli_FloatOp, self).__init__(result_type, self_, p, generator, loc=loc, ip=ip)
+        
+    
+class AtenRandintLowOp:
+    def __init__(self, low: int, high: int, size: List[int], dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(low):
+            low = torch_dialect.ConstantIntOp(low)
+        else:
+            low = get_op_result_or_value(low)
+            assert str(low.type) == '!torch.int', f'`low` should be a !torch.int but is {type(low).__module__}.{type(low).__name__}'
+            
+        if not is_mlir_value(high):
+            high = torch_dialect.ConstantIntOp(high)
+        else:
+            high = get_op_result_or_value(high)
+            assert str(high.type) == '!torch.int', f'`high` should be a !torch.int but is {type(high).__module__}.{type(high).__name__}'
+            
+        if not is_mlir_value(size):
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
+            size = torch_dialect.PrimListConstructOp(size)
+        else:
+            size = get_op_result_or_value(size)
+            assert str(size.type) == '!torch.list<int>', f'`size` should be a !torch.list<int> but is {type(size).__module__}.{type(size).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenRandintLowOp, self).__init__(result_type, low, high, size, dtype, layout, device, pin_memory, loc=loc, ip=ip)
+        
+    
+class AtenBernoulliTensorOp:
+    def __init__(self, self_: Value, p: Value, generator: Optional[Generator], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(p):
+            assert is_mlir_value(p), f'`p` should be a Value but is {type(p).__module__}.{type(p).__name__}'
+        else:
+            p = get_op_result_or_value(p)
+            assert str(p.type).startswith("!torch.vtensor"), f'`p` should be a torch.vtensor but is {type(p).__module__}.{type(p).__name__}'
+            
+        if not is_mlir_value(generator):
+            if generator is not None:
+                assert is_mlir_value(generator), f'`generator` should be a Value but is {type(generator).__module__}.{type(generator).__name__}'
+            else:
+                generator = torch_dialect.ConstantNoneOp()
+        else:
+            generator = get_op_result_or_value(generator)
+            # should be Generator?
+            pass
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenBernoulliTensorOp, self).__init__(result_type, self_, p, generator, loc=loc, ip=ip)
+        
+    
+class AtenBernoulli_TensorOp:
+    def __init__(self, self_: Value, p: Value, generator: Optional[Generator], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(p):
+            assert is_mlir_value(p), f'`p` should be a Value but is {type(p).__module__}.{type(p).__name__}'
+        else:
+            p = get_op_result_or_value(p)
+            assert str(p.type).startswith("!torch.vtensor"), f'`p` should be a torch.vtensor but is {type(p).__module__}.{type(p).__name__}'
+            
+        if not is_mlir_value(generator):
+            if generator is not None:
+                assert is_mlir_value(generator), f'`generator` should be a Value but is {type(generator).__module__}.{type(generator).__name__}'
+            else:
+                generator = torch_dialect.ConstantNoneOp()
+        else:
+            generator = get_op_result_or_value(generator)
+            # should be Generator?
+            pass
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenBernoulli_TensorOp, self).__init__(result_type, self_, p, generator, loc=loc, ip=ip)
+        
+    
+class AtenRandnOp:
+    def __init__(self, size: List[int], dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(size):
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
+            size = torch_dialect.PrimListConstructOp(size)
+        else:
+            size = get_op_result_or_value(size)
+            assert str(size.type) == '!torch.list<int>', f'`size` should be a !torch.list<int> but is {type(size).__module__}.{type(size).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenRandnOp, self).__init__(result_type, size, dtype, layout, device, pin_memory, loc=loc, ip=ip)
+        
+    
+class AtenRandnGeneratorOp:
+    def __init__(self, size: List[int], generator: Optional[Generator], dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(size):
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
+            size = torch_dialect.PrimListConstructOp(size)
+        else:
+            size = get_op_result_or_value(size)
+            assert str(size.type) == '!torch.list<int>', f'`size` should be a !torch.list<int> but is {type(size).__module__}.{type(size).__name__}'
+            
+        if not is_mlir_value(generator):
+            if generator is not None:
+                assert is_mlir_value(generator), f'`generator` should be a Value but is {type(generator).__module__}.{type(generator).__name__}'
+            else:
+                generator = torch_dialect.ConstantNoneOp()
+        else:
+            generator = get_op_result_or_value(generator)
+            # should be Generator?
+            pass
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenRandnGeneratorOp, self).__init__(result_type, size, generator, dtype, layout, device, pin_memory, loc=loc, ip=ip)
         
     
 class AtenTriuOp:
@@ -2729,6 +3150,70 @@ class AtenRound_Op:
             
         result_type = Type.parse("!torch.vtensor")
         super(AtenRound_Op, self).__init__(result_type, self_, loc=loc, ip=ip)
+        
+    
+class AtenIndexPutOp:
+    def __init__(self, self_: Value, indices: List[Optional[Value]], values: Value, accumulate: bool, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(indices):
+            indices = torch_dialect.PrimListConstructOp(indices)
+        else:
+            indices = get_op_result_or_value(indices)
+            assert str(indices.type) == '!torch.list<Tensor>', f'`indices` should be a !torch.list<Tensor> but is {type(indices).__module__}.{type(indices).__name__}'
+            
+        if not is_mlir_value(values):
+            assert is_mlir_value(values), f'`values` should be a Value but is {type(values).__module__}.{type(values).__name__}'
+        else:
+            values = get_op_result_or_value(values)
+            assert str(values.type).startswith("!torch.vtensor"), f'`values` should be a torch.vtensor but is {type(values).__module__}.{type(values).__name__}'
+            
+        if not is_mlir_value(accumulate):
+            accumulate = torch_dialect.ConstantBoolOp(accumulate)
+        else:
+            accumulate = get_op_result_or_value(accumulate)
+            assert str(accumulate.type) == '!torch.bool', f'`accumulate` should be a !torch.bool but is {type(accumulate).__module__}.{type(accumulate).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenIndexPutOp, self).__init__(result_type, self_, indices, values, accumulate, loc=loc, ip=ip)
+        
+    
+class AtenIndexPut_Op:
+    def __init__(self, self_: Value, indices: List[Optional[Value]], values: Value, accumulate: bool, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(indices):
+            indices = torch_dialect.PrimListConstructOp(indices)
+        else:
+            indices = get_op_result_or_value(indices)
+            assert str(indices.type) == '!torch.list<Tensor>', f'`indices` should be a !torch.list<Tensor> but is {type(indices).__module__}.{type(indices).__name__}'
+            
+        if not is_mlir_value(values):
+            assert is_mlir_value(values), f'`values` should be a Value but is {type(values).__module__}.{type(values).__name__}'
+        else:
+            values = get_op_result_or_value(values)
+            assert str(values.type).startswith("!torch.vtensor"), f'`values` should be a torch.vtensor but is {type(values).__module__}.{type(values).__name__}'
+            
+        if not is_mlir_value(accumulate):
+            accumulate = torch_dialect.ConstantBoolOp(accumulate)
+        else:
+            accumulate = get_op_result_or_value(accumulate)
+            assert str(accumulate.type) == '!torch.bool', f'`accumulate` should be a !torch.bool but is {type(accumulate).__module__}.{type(accumulate).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenIndexPut_Op, self).__init__(result_type, self_, indices, values, accumulate, loc=loc, ip=ip)
         
     
 class AtenIndexPutHackedTwinOp:
@@ -2843,7 +3328,7 @@ class AtenMmOp:
         
     
 class AtenAddmmOp:
-    def __init__(self, self_: Value, mat1: Value, mat2: Value, beta: "Number", alpha: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, mat1: Value, mat2: Value, beta: Number, alpha: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -2942,21 +3427,21 @@ class AtenConv2dOp:
             assert str(bias.type).startswith("!torch.vtensor"), f'`bias` should be a torch.vtensor but is {type(bias).__module__}.{type(bias).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
             assert str(stride.type) == '!torch.list<int>', f'`stride` should be a !torch.list<int> but is {type(stride).__module__}.{type(stride).__name__}'
             
         if not is_mlir_value(padding):
-            padding = list(map(torch_dialect.ConstantIntOp, padding))
+            padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in padding]
             padding = torch_dialect.PrimListConstructOp(padding)
         else:
             padding = get_op_result_or_value(padding)
             assert str(padding.type) == '!torch.list<int>', f'`padding` should be a !torch.list<int> but is {type(padding).__module__}.{type(padding).__name__}'
             
         if not is_mlir_value(dilation):
-            dilation = list(map(torch_dialect.ConstantIntOp, dilation))
+            dilation = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dilation]
             dilation = torch_dialect.PrimListConstructOp(dilation)
         else:
             dilation = get_op_result_or_value(dilation)
@@ -2998,21 +3483,21 @@ class AtenConvTranspose1dOp:
             assert str(bias.type).startswith("!torch.vtensor"), f'`bias` should be a torch.vtensor but is {type(bias).__module__}.{type(bias).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
             assert str(stride.type) == '!torch.list<int>', f'`stride` should be a !torch.list<int> but is {type(stride).__module__}.{type(stride).__name__}'
             
         if not is_mlir_value(padding):
-            padding = list(map(torch_dialect.ConstantIntOp, padding))
+            padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in padding]
             padding = torch_dialect.PrimListConstructOp(padding)
         else:
             padding = get_op_result_or_value(padding)
             assert str(padding.type) == '!torch.list<int>', f'`padding` should be a !torch.list<int> but is {type(padding).__module__}.{type(padding).__name__}'
             
         if not is_mlir_value(output_padding):
-            output_padding = list(map(torch_dialect.ConstantIntOp, output_padding))
+            output_padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in output_padding]
             output_padding = torch_dialect.PrimListConstructOp(output_padding)
         else:
             output_padding = get_op_result_or_value(output_padding)
@@ -3025,7 +3510,7 @@ class AtenConvTranspose1dOp:
             assert str(groups.type) == '!torch.int', f'`groups` should be a !torch.int but is {type(groups).__module__}.{type(groups).__name__}'
             
         if not is_mlir_value(dilation):
-            dilation = list(map(torch_dialect.ConstantIntOp, dilation))
+            dilation = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dilation]
             dilation = torch_dialect.PrimListConstructOp(dilation)
         else:
             dilation = get_op_result_or_value(dilation)
@@ -3061,21 +3546,21 @@ class AtenConvTranspose2dInputOp:
             assert str(bias.type).startswith("!torch.vtensor"), f'`bias` should be a torch.vtensor but is {type(bias).__module__}.{type(bias).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
             assert str(stride.type) == '!torch.list<int>', f'`stride` should be a !torch.list<int> but is {type(stride).__module__}.{type(stride).__name__}'
             
         if not is_mlir_value(padding):
-            padding = list(map(torch_dialect.ConstantIntOp, padding))
+            padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in padding]
             padding = torch_dialect.PrimListConstructOp(padding)
         else:
             padding = get_op_result_or_value(padding)
             assert str(padding.type) == '!torch.list<int>', f'`padding` should be a !torch.list<int> but is {type(padding).__module__}.{type(padding).__name__}'
             
         if not is_mlir_value(output_padding):
-            output_padding = list(map(torch_dialect.ConstantIntOp, output_padding))
+            output_padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in output_padding]
             output_padding = torch_dialect.PrimListConstructOp(output_padding)
         else:
             output_padding = get_op_result_or_value(output_padding)
@@ -3088,7 +3573,7 @@ class AtenConvTranspose2dInputOp:
             assert str(groups.type) == '!torch.int', f'`groups` should be a !torch.int but is {type(groups).__module__}.{type(groups).__name__}'
             
         if not is_mlir_value(dilation):
-            dilation = list(map(torch_dialect.ConstantIntOp, dilation))
+            dilation = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dilation]
             dilation = torch_dialect.PrimListConstructOp(dilation)
         else:
             dilation = get_op_result_or_value(dilation)
@@ -3124,21 +3609,21 @@ class AtenConvTranspose3dInputOp:
             assert str(bias.type).startswith("!torch.vtensor"), f'`bias` should be a torch.vtensor but is {type(bias).__module__}.{type(bias).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
             assert str(stride.type) == '!torch.list<int>', f'`stride` should be a !torch.list<int> but is {type(stride).__module__}.{type(stride).__name__}'
             
         if not is_mlir_value(padding):
-            padding = list(map(torch_dialect.ConstantIntOp, padding))
+            padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in padding]
             padding = torch_dialect.PrimListConstructOp(padding)
         else:
             padding = get_op_result_or_value(padding)
             assert str(padding.type) == '!torch.list<int>', f'`padding` should be a !torch.list<int> but is {type(padding).__module__}.{type(padding).__name__}'
             
         if not is_mlir_value(output_padding):
-            output_padding = list(map(torch_dialect.ConstantIntOp, output_padding))
+            output_padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in output_padding]
             output_padding = torch_dialect.PrimListConstructOp(output_padding)
         else:
             output_padding = get_op_result_or_value(output_padding)
@@ -3151,7 +3636,7 @@ class AtenConvTranspose3dInputOp:
             assert str(groups.type) == '!torch.int', f'`groups` should be a !torch.int but is {type(groups).__module__}.{type(groups).__name__}'
             
         if not is_mlir_value(dilation):
-            dilation = list(map(torch_dialect.ConstantIntOp, dilation))
+            dilation = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dilation]
             dilation = torch_dialect.PrimListConstructOp(dilation)
         else:
             dilation = get_op_result_or_value(dilation)
@@ -3187,21 +3672,21 @@ class AtenConvolutionOp:
             assert str(bias.type).startswith("!torch.vtensor"), f'`bias` should be a torch.vtensor but is {type(bias).__module__}.{type(bias).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
             assert str(stride.type) == '!torch.list<int>', f'`stride` should be a !torch.list<int> but is {type(stride).__module__}.{type(stride).__name__}'
             
         if not is_mlir_value(padding):
-            padding = list(map(torch_dialect.ConstantIntOp, padding))
+            padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in padding]
             padding = torch_dialect.PrimListConstructOp(padding)
         else:
             padding = get_op_result_or_value(padding)
             assert str(padding.type) == '!torch.list<int>', f'`padding` should be a !torch.list<int> but is {type(padding).__module__}.{type(padding).__name__}'
             
         if not is_mlir_value(dilation):
-            dilation = list(map(torch_dialect.ConstantIntOp, dilation))
+            dilation = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dilation]
             dilation = torch_dialect.PrimListConstructOp(dilation)
         else:
             dilation = get_op_result_or_value(dilation)
@@ -3214,7 +3699,7 @@ class AtenConvolutionOp:
             assert str(transposed.type) == '!torch.bool', f'`transposed` should be a !torch.bool but is {type(transposed).__module__}.{type(transposed).__name__}'
             
         if not is_mlir_value(output_padding):
-            output_padding = list(map(torch_dialect.ConstantIntOp, output_padding))
+            output_padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in output_padding]
             output_padding = torch_dialect.PrimListConstructOp(output_padding)
         else:
             output_padding = get_op_result_or_value(output_padding)
@@ -3256,21 +3741,21 @@ class AtenConvolutionOverrideableOp:
             assert str(bias.type).startswith("!torch.vtensor"), f'`bias` should be a torch.vtensor but is {type(bias).__module__}.{type(bias).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
             assert str(stride.type) == '!torch.list<int>', f'`stride` should be a !torch.list<int> but is {type(stride).__module__}.{type(stride).__name__}'
             
         if not is_mlir_value(padding):
-            padding = list(map(torch_dialect.ConstantIntOp, padding))
+            padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in padding]
             padding = torch_dialect.PrimListConstructOp(padding)
         else:
             padding = get_op_result_or_value(padding)
             assert str(padding.type) == '!torch.list<int>', f'`padding` should be a !torch.list<int> but is {type(padding).__module__}.{type(padding).__name__}'
             
         if not is_mlir_value(dilation):
-            dilation = list(map(torch_dialect.ConstantIntOp, dilation))
+            dilation = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dilation]
             dilation = torch_dialect.PrimListConstructOp(dilation)
         else:
             dilation = get_op_result_or_value(dilation)
@@ -3283,7 +3768,7 @@ class AtenConvolutionOverrideableOp:
             assert str(transposed.type) == '!torch.bool', f'`transposed` should be a !torch.bool but is {type(transposed).__module__}.{type(transposed).__name__}'
             
         if not is_mlir_value(output_padding):
-            output_padding = list(map(torch_dialect.ConstantIntOp, output_padding))
+            output_padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in output_padding]
             output_padding = torch_dialect.PrimListConstructOp(output_padding)
         else:
             output_padding = get_op_result_or_value(output_padding)
@@ -3325,21 +3810,21 @@ class Aten_ConvolutionOp:
             assert str(bias.type).startswith("!torch.vtensor"), f'`bias` should be a torch.vtensor but is {type(bias).__module__}.{type(bias).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
             assert str(stride.type) == '!torch.list<int>', f'`stride` should be a !torch.list<int> but is {type(stride).__module__}.{type(stride).__name__}'
             
         if not is_mlir_value(padding):
-            padding = list(map(torch_dialect.ConstantIntOp, padding))
+            padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in padding]
             padding = torch_dialect.PrimListConstructOp(padding)
         else:
             padding = get_op_result_or_value(padding)
             assert str(padding.type) == '!torch.list<int>', f'`padding` should be a !torch.list<int> but is {type(padding).__module__}.{type(padding).__name__}'
             
         if not is_mlir_value(dilation):
-            dilation = list(map(torch_dialect.ConstantIntOp, dilation))
+            dilation = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dilation]
             dilation = torch_dialect.PrimListConstructOp(dilation)
         else:
             dilation = get_op_result_or_value(dilation)
@@ -3352,7 +3837,7 @@ class Aten_ConvolutionOp:
             assert str(transposed.type) == '!torch.bool', f'`transposed` should be a !torch.bool but is {type(transposed).__module__}.{type(transposed).__name__}'
             
         if not is_mlir_value(output_padding):
-            output_padding = list(map(torch_dialect.ConstantIntOp, output_padding))
+            output_padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in output_padding]
             output_padding = torch_dialect.PrimListConstructOp(output_padding)
         else:
             output_padding = get_op_result_or_value(output_padding)
@@ -3418,21 +3903,21 @@ class Aten_ConvolutionDeprecatedOp:
             assert str(bias.type).startswith("!torch.vtensor"), f'`bias` should be a torch.vtensor but is {type(bias).__module__}.{type(bias).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
             assert str(stride.type) == '!torch.list<int>', f'`stride` should be a !torch.list<int> but is {type(stride).__module__}.{type(stride).__name__}'
             
         if not is_mlir_value(padding):
-            padding = list(map(torch_dialect.ConstantIntOp, padding))
+            padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in padding]
             padding = torch_dialect.PrimListConstructOp(padding)
         else:
             padding = get_op_result_or_value(padding)
             assert str(padding.type) == '!torch.list<int>', f'`padding` should be a !torch.list<int> but is {type(padding).__module__}.{type(padding).__name__}'
             
         if not is_mlir_value(dilation):
-            dilation = list(map(torch_dialect.ConstantIntOp, dilation))
+            dilation = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dilation]
             dilation = torch_dialect.PrimListConstructOp(dilation)
         else:
             dilation = get_op_result_or_value(dilation)
@@ -3445,7 +3930,7 @@ class Aten_ConvolutionDeprecatedOp:
             assert str(transposed.type) == '!torch.bool', f'`transposed` should be a !torch.bool but is {type(transposed).__module__}.{type(transposed).__name__}'
             
         if not is_mlir_value(output_padding):
-            output_padding = list(map(torch_dialect.ConstantIntOp, output_padding))
+            output_padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in output_padding]
             output_padding = torch_dialect.PrimListConstructOp(output_padding)
         else:
             output_padding = get_op_result_or_value(output_padding)
@@ -3490,14 +3975,14 @@ class AtenRollOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(shifts):
-            shifts = list(map(torch_dialect.ConstantIntOp, shifts))
+            shifts = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in shifts]
             shifts = torch_dialect.PrimListConstructOp(shifts)
         else:
             shifts = get_op_result_or_value(shifts)
             assert str(shifts.type) == '!torch.list<int>', f'`shifts` should be a !torch.list<int> but is {type(shifts).__module__}.{type(shifts).__name__}'
             
         if not is_mlir_value(dims):
-            dims = list(map(torch_dialect.ConstantIntOp, dims))
+            dims = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dims]
             dims = torch_dialect.PrimListConstructOp(dims)
         else:
             dims = get_op_result_or_value(dims)
@@ -3505,6 +3990,92 @@ class AtenRollOp:
             
         result_type = Type.parse("!torch.vtensor")
         super(AtenRollOp, self).__init__(result_type, self_, shifts, dims, loc=loc, ip=ip)
+        
+    
+class AtenConvolutionBackwardOp:
+    def __init__(self, grad_output: Value, input: Value, weight: Value, bias_sizes: Optional[List[int]], stride: List[int], padding: List[int], dilation: List[int], transposed: bool, output_padding: List[int], groups: int, output_mask: List[bool], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(grad_output):
+            assert is_mlir_value(grad_output), f'`grad_output` should be a Value but is {type(grad_output).__module__}.{type(grad_output).__name__}'
+        else:
+            grad_output = get_op_result_or_value(grad_output)
+            assert str(grad_output.type).startswith("!torch.vtensor"), f'`grad_output` should be a torch.vtensor but is {type(grad_output).__module__}.{type(grad_output).__name__}'
+            
+        if not is_mlir_value(input):
+            assert is_mlir_value(input), f'`input` should be a Value but is {type(input).__module__}.{type(input).__name__}'
+        else:
+            input = get_op_result_or_value(input)
+            assert str(input.type).startswith("!torch.vtensor"), f'`input` should be a torch.vtensor but is {type(input).__module__}.{type(input).__name__}'
+            
+        if not is_mlir_value(weight):
+            assert is_mlir_value(weight), f'`weight` should be a Value but is {type(weight).__module__}.{type(weight).__name__}'
+        else:
+            weight = get_op_result_or_value(weight)
+            assert str(weight.type).startswith("!torch.vtensor"), f'`weight` should be a torch.vtensor but is {type(weight).__module__}.{type(weight).__name__}'
+            
+        if not is_mlir_value(bias_sizes):
+            if bias_sizes is not None:
+                bias_sizes = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in bias_sizes]
+                bias_sizes = torch_dialect.PrimListConstructOp(bias_sizes)
+            else:
+                bias_sizes = torch_dialect.ConstantNoneOp()
+        else:
+            bias_sizes = get_op_result_or_value(bias_sizes)
+            assert str(bias_sizes.type) == '!torch.list<int>', f'`bias_sizes` should be a !torch.list<int> but is {type(bias_sizes).__module__}.{type(bias_sizes).__name__}'
+            
+        if not is_mlir_value(stride):
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
+            stride = torch_dialect.PrimListConstructOp(stride)
+        else:
+            stride = get_op_result_or_value(stride)
+            assert str(stride.type) == '!torch.list<int>', f'`stride` should be a !torch.list<int> but is {type(stride).__module__}.{type(stride).__name__}'
+            
+        if not is_mlir_value(padding):
+            padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in padding]
+            padding = torch_dialect.PrimListConstructOp(padding)
+        else:
+            padding = get_op_result_or_value(padding)
+            assert str(padding.type) == '!torch.list<int>', f'`padding` should be a !torch.list<int> but is {type(padding).__module__}.{type(padding).__name__}'
+            
+        if not is_mlir_value(dilation):
+            dilation = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dilation]
+            dilation = torch_dialect.PrimListConstructOp(dilation)
+        else:
+            dilation = get_op_result_or_value(dilation)
+            assert str(dilation.type) == '!torch.list<int>', f'`dilation` should be a !torch.list<int> but is {type(dilation).__module__}.{type(dilation).__name__}'
+            
+        if not is_mlir_value(transposed):
+            transposed = torch_dialect.ConstantBoolOp(transposed)
+        else:
+            transposed = get_op_result_or_value(transposed)
+            assert str(transposed.type) == '!torch.bool', f'`transposed` should be a !torch.bool but is {type(transposed).__module__}.{type(transposed).__name__}'
+            
+        if not is_mlir_value(output_padding):
+            output_padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in output_padding]
+            output_padding = torch_dialect.PrimListConstructOp(output_padding)
+        else:
+            output_padding = get_op_result_or_value(output_padding)
+            assert str(output_padding.type) == '!torch.list<int>', f'`output_padding` should be a !torch.list<int> but is {type(output_padding).__module__}.{type(output_padding).__name__}'
+            
+        if not is_mlir_value(groups):
+            groups = torch_dialect.ConstantIntOp(groups)
+        else:
+            groups = get_op_result_or_value(groups)
+            assert str(groups.type) == '!torch.int', f'`groups` should be a !torch.int but is {type(groups).__module__}.{type(groups).__name__}'
+            
+        if not is_mlir_value(output_mask):
+            output_mask = [torch_dialect.ConstantBoolOp(a) if not is_mlir_value(a) else a for a in output_mask]
+            output_mask = torch_dialect.PrimListConstructOp(output_mask)
+        else:
+            output_mask = get_op_result_or_value(output_mask)
+            # should be bool[]
+            pass
+            
+        result0_type = Type.parse("!torch.vtensor")
+        result1_type = Type.parse("!torch.vtensor")
+        result2_type = Type.parse("!torch.vtensor")
+        super(AtenConvolutionBackwardOp, self).__init__(result0_type, result1_type, result2_type, grad_output, input, weight, bias_sizes, stride, padding, dilation, transposed, output_padding, groups, output_mask, loc=loc, ip=ip)
         
     
 class AtenConvolutionBackwardOverrideableOp:
@@ -3530,21 +4101,21 @@ class AtenConvolutionBackwardOverrideableOp:
             assert str(weight.type).startswith("!torch.vtensor"), f'`weight` should be a torch.vtensor but is {type(weight).__module__}.{type(weight).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
             assert str(stride.type) == '!torch.list<int>', f'`stride` should be a !torch.list<int> but is {type(stride).__module__}.{type(stride).__name__}'
             
         if not is_mlir_value(padding):
-            padding = list(map(torch_dialect.ConstantIntOp, padding))
+            padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in padding]
             padding = torch_dialect.PrimListConstructOp(padding)
         else:
             padding = get_op_result_or_value(padding)
             assert str(padding.type) == '!torch.list<int>', f'`padding` should be a !torch.list<int> but is {type(padding).__module__}.{type(padding).__name__}'
             
         if not is_mlir_value(dilation):
-            dilation = list(map(torch_dialect.ConstantIntOp, dilation))
+            dilation = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dilation]
             dilation = torch_dialect.PrimListConstructOp(dilation)
         else:
             dilation = get_op_result_or_value(dilation)
@@ -3557,7 +4128,7 @@ class AtenConvolutionBackwardOverrideableOp:
             assert str(transposed.type) == '!torch.bool', f'`transposed` should be a !torch.bool but is {type(transposed).__module__}.{type(transposed).__name__}'
             
         if not is_mlir_value(output_padding):
-            output_padding = list(map(torch_dialect.ConstantIntOp, output_padding))
+            output_padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in output_padding]
             output_padding = torch_dialect.PrimListConstructOp(output_padding)
         else:
             output_padding = get_op_result_or_value(output_padding)
@@ -3570,7 +4141,7 @@ class AtenConvolutionBackwardOverrideableOp:
             assert str(groups.type) == '!torch.int', f'`groups` should be a !torch.int but is {type(groups).__module__}.{type(groups).__name__}'
             
         if not is_mlir_value(output_mask):
-            output_mask = list(map(torch_dialect.ConstantBoolOp, output_mask))
+            output_mask = [torch_dialect.ConstantBoolOp(a) if not is_mlir_value(a) else a for a in output_mask]
             output_mask = torch_dialect.PrimListConstructOp(output_mask)
         else:
             output_mask = get_op_result_or_value(output_mask)
@@ -3594,7 +4165,7 @@ class AtenFlipOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(dims):
-            dims = list(map(torch_dialect.ConstantIntOp, dims))
+            dims = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dims]
             dims = torch_dialect.PrimListConstructOp(dims)
         else:
             dims = get_op_result_or_value(dims)
@@ -3759,7 +4330,7 @@ class AtenLayerNormOp:
             assert str(input.type).startswith("!torch.vtensor"), f'`input` should be a torch.vtensor but is {type(input).__module__}.{type(input).__name__}'
             
         if not is_mlir_value(normalized_shape):
-            normalized_shape = list(map(torch_dialect.ConstantIntOp, normalized_shape))
+            normalized_shape = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in normalized_shape]
             normalized_shape = torch_dialect.PrimListConstructOp(normalized_shape)
         else:
             normalized_shape = get_op_result_or_value(normalized_shape)
@@ -3810,7 +4381,7 @@ class AtenNativeLayerNormOp:
             assert str(input.type).startswith("!torch.vtensor"), f'`input` should be a torch.vtensor but is {type(input).__module__}.{type(input).__name__}'
             
         if not is_mlir_value(normalized_shape):
-            normalized_shape = list(map(torch_dialect.ConstantIntOp, normalized_shape))
+            normalized_shape = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in normalized_shape]
             normalized_shape = torch_dialect.PrimListConstructOp(normalized_shape)
         else:
             normalized_shape = get_op_result_or_value(normalized_shape)
@@ -3857,28 +4428,28 @@ class AtenMaxPool2dOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(kernel_size):
-            kernel_size = list(map(torch_dialect.ConstantIntOp, kernel_size))
+            kernel_size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in kernel_size]
             kernel_size = torch_dialect.PrimListConstructOp(kernel_size)
         else:
             kernel_size = get_op_result_or_value(kernel_size)
             assert str(kernel_size.type) == '!torch.list<int>', f'`kernel_size` should be a !torch.list<int> but is {type(kernel_size).__module__}.{type(kernel_size).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
             assert str(stride.type) == '!torch.list<int>', f'`stride` should be a !torch.list<int> but is {type(stride).__module__}.{type(stride).__name__}'
             
         if not is_mlir_value(padding):
-            padding = list(map(torch_dialect.ConstantIntOp, padding))
+            padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in padding]
             padding = torch_dialect.PrimListConstructOp(padding)
         else:
             padding = get_op_result_or_value(padding)
             assert str(padding.type) == '!torch.list<int>', f'`padding` should be a !torch.list<int> but is {type(padding).__module__}.{type(padding).__name__}'
             
         if not is_mlir_value(dilation):
-            dilation = list(map(torch_dialect.ConstantIntOp, dilation))
+            dilation = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dilation]
             dilation = torch_dialect.PrimListConstructOp(dilation)
         else:
             dilation = get_op_result_or_value(dilation)
@@ -3905,28 +4476,28 @@ class AtenMaxPool2dWithIndicesOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(kernel_size):
-            kernel_size = list(map(torch_dialect.ConstantIntOp, kernel_size))
+            kernel_size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in kernel_size]
             kernel_size = torch_dialect.PrimListConstructOp(kernel_size)
         else:
             kernel_size = get_op_result_or_value(kernel_size)
             assert str(kernel_size.type) == '!torch.list<int>', f'`kernel_size` should be a !torch.list<int> but is {type(kernel_size).__module__}.{type(kernel_size).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
             assert str(stride.type) == '!torch.list<int>', f'`stride` should be a !torch.list<int> but is {type(stride).__module__}.{type(stride).__name__}'
             
         if not is_mlir_value(padding):
-            padding = list(map(torch_dialect.ConstantIntOp, padding))
+            padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in padding]
             padding = torch_dialect.PrimListConstructOp(padding)
         else:
             padding = get_op_result_or_value(padding)
             assert str(padding.type) == '!torch.list<int>', f'`padding` should be a !torch.list<int> but is {type(padding).__module__}.{type(padding).__name__}'
             
         if not is_mlir_value(dilation):
-            dilation = list(map(torch_dialect.ConstantIntOp, dilation))
+            dilation = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dilation]
             dilation = torch_dialect.PrimListConstructOp(dilation)
         else:
             dilation = get_op_result_or_value(dilation)
@@ -3960,28 +4531,28 @@ class AtenMaxPool2dWithIndicesBackwardOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(kernel_size):
-            kernel_size = list(map(torch_dialect.ConstantIntOp, kernel_size))
+            kernel_size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in kernel_size]
             kernel_size = torch_dialect.PrimListConstructOp(kernel_size)
         else:
             kernel_size = get_op_result_or_value(kernel_size)
             assert str(kernel_size.type) == '!torch.list<int>', f'`kernel_size` should be a !torch.list<int> but is {type(kernel_size).__module__}.{type(kernel_size).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
             assert str(stride.type) == '!torch.list<int>', f'`stride` should be a !torch.list<int> but is {type(stride).__module__}.{type(stride).__name__}'
             
         if not is_mlir_value(padding):
-            padding = list(map(torch_dialect.ConstantIntOp, padding))
+            padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in padding]
             padding = torch_dialect.PrimListConstructOp(padding)
         else:
             padding = get_op_result_or_value(padding)
             assert str(padding.type) == '!torch.list<int>', f'`padding` should be a !torch.list<int> but is {type(padding).__module__}.{type(padding).__name__}'
             
         if not is_mlir_value(dilation):
-            dilation = list(map(torch_dialect.ConstantIntOp, dilation))
+            dilation = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dilation]
             dilation = torch_dialect.PrimListConstructOp(dilation)
         else:
             dilation = get_op_result_or_value(dilation)
@@ -4014,21 +4585,21 @@ class AtenAvgPool2dOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(kernel_size):
-            kernel_size = list(map(torch_dialect.ConstantIntOp, kernel_size))
+            kernel_size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in kernel_size]
             kernel_size = torch_dialect.PrimListConstructOp(kernel_size)
         else:
             kernel_size = get_op_result_or_value(kernel_size)
             assert str(kernel_size.type) == '!torch.list<int>', f'`kernel_size` should be a !torch.list<int> but is {type(kernel_size).__module__}.{type(kernel_size).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
             assert str(stride.type) == '!torch.list<int>', f'`stride` should be a !torch.list<int> but is {type(stride).__module__}.{type(stride).__name__}'
             
         if not is_mlir_value(padding):
-            padding = list(map(torch_dialect.ConstantIntOp, padding))
+            padding = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in padding]
             padding = torch_dialect.PrimListConstructOp(padding)
         else:
             padding = get_op_result_or_value(padding)
@@ -4154,7 +4725,7 @@ class AtenAdaptiveAvgPool2dOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(output_size):
-            output_size = list(map(torch_dialect.ConstantIntOp, output_size))
+            output_size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in output_size]
             output_size = torch_dialect.PrimListConstructOp(output_size)
         else:
             output_size = get_op_result_or_value(output_size)
@@ -4240,7 +4811,7 @@ class AtenPermuteOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(dims):
-            dims = list(map(torch_dialect.ConstantIntOp, dims))
+            dims = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dims]
             dims = torch_dialect.PrimListConstructOp(dims)
         else:
             dims = get_op_result_or_value(dims)
@@ -4298,7 +4869,7 @@ class AtenCumsumOp:
         
     
 class AtenFloorDivideScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -4328,7 +4899,7 @@ class AtenLogsumexpOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(dim):
-            dim = list(map(torch_dialect.ConstantIntOp, dim))
+            dim = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dim]
             dim = torch_dialect.PrimListConstructOp(dim)
         else:
             dim = get_op_result_or_value(dim)
@@ -4342,6 +4913,45 @@ class AtenLogsumexpOp:
             
         result_type = Type.parse("!torch.vtensor")
         super(AtenLogsumexpOp, self).__init__(result_type, self_, dim, keepdim, loc=loc, ip=ip)
+        
+    
+class AtenMeanDimOp:
+    def __init__(self, self_: Value, dim: Optional[List[int]], keepdim: bool, dtype: Optional[int], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(dim):
+            if dim is not None:
+                dim = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dim]
+                dim = torch_dialect.PrimListConstructOp(dim)
+            else:
+                dim = torch_dialect.ConstantNoneOp()
+        else:
+            dim = get_op_result_or_value(dim)
+            assert str(dim.type) == '!torch.list<int>', f'`dim` should be a !torch.list<int> but is {type(dim).__module__}.{type(dim).__name__}'
+            
+        if not is_mlir_value(keepdim):
+            keepdim = torch_dialect.ConstantBoolOp(keepdim)
+        else:
+            keepdim = get_op_result_or_value(keepdim)
+            assert str(keepdim.type) == '!torch.bool', f'`keepdim` should be a !torch.bool but is {type(keepdim).__module__}.{type(keepdim).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenMeanDimOp, self).__init__(result_type, self_, dim, keepdim, dtype, loc=loc, ip=ip)
         
     
 class Aten__And__TensorOp:
@@ -4431,6 +5041,81 @@ class AtenStdOp:
         super(AtenStdOp, self).__init__(result_type, self_, unbiased, loc=loc, ip=ip)
         
     
+class AtenStdDimOp:
+    def __init__(self, self_: Value, dim: Optional[List[int]], unbiased: bool, keepdim: bool, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(dim):
+            if dim is not None:
+                dim = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dim]
+                dim = torch_dialect.PrimListConstructOp(dim)
+            else:
+                dim = torch_dialect.ConstantNoneOp()
+        else:
+            dim = get_op_result_or_value(dim)
+            assert str(dim.type) == '!torch.list<int>', f'`dim` should be a !torch.list<int> but is {type(dim).__module__}.{type(dim).__name__}'
+            
+        if not is_mlir_value(unbiased):
+            unbiased = torch_dialect.ConstantBoolOp(unbiased)
+        else:
+            unbiased = get_op_result_or_value(unbiased)
+            assert str(unbiased.type) == '!torch.bool', f'`unbiased` should be a !torch.bool but is {type(unbiased).__module__}.{type(unbiased).__name__}'
+            
+        if not is_mlir_value(keepdim):
+            keepdim = torch_dialect.ConstantBoolOp(keepdim)
+        else:
+            keepdim = get_op_result_or_value(keepdim)
+            assert str(keepdim.type) == '!torch.bool', f'`keepdim` should be a !torch.bool but is {type(keepdim).__module__}.{type(keepdim).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenStdDimOp, self).__init__(result_type, self_, dim, unbiased, keepdim, loc=loc, ip=ip)
+        
+    
+class AtenStdCorrectionOp:
+    def __init__(self, self_: Value, dim: Optional[List[int]], correction: Optional[int], keepdim: bool, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(dim):
+            if dim is not None:
+                dim = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dim]
+                dim = torch_dialect.PrimListConstructOp(dim)
+            else:
+                dim = torch_dialect.ConstantNoneOp()
+        else:
+            dim = get_op_result_or_value(dim)
+            assert str(dim.type) == '!torch.list<int>', f'`dim` should be a !torch.list<int> but is {type(dim).__module__}.{type(dim).__name__}'
+            
+        if not is_mlir_value(correction):
+            if correction is not None:
+                correction = torch_dialect.ConstantIntOp(correction)
+            else:
+                correction = torch_dialect.ConstantNoneOp()
+        else:
+            correction = get_op_result_or_value(correction)
+            assert str(correction.type) == '!torch.int', f'`correction` should be a !torch.int but is {type(correction).__module__}.{type(correction).__name__}'
+            
+        if not is_mlir_value(keepdim):
+            keepdim = torch_dialect.ConstantBoolOp(keepdim)
+        else:
+            keepdim = get_op_result_or_value(keepdim)
+            assert str(keepdim.type) == '!torch.bool', f'`keepdim` should be a !torch.bool but is {type(keepdim).__module__}.{type(keepdim).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenStdCorrectionOp, self).__init__(result_type, self_, dim, correction, keepdim, loc=loc, ip=ip)
+        
+    
 class AtenVarOp:
     def __init__(self, self_: Value, unbiased: bool, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
@@ -4449,6 +5134,121 @@ class AtenVarOp:
             
         result_type = Type.parse("!torch.vtensor")
         super(AtenVarOp, self).__init__(result_type, self_, unbiased, loc=loc, ip=ip)
+        
+    
+class AtenVarDimOp:
+    def __init__(self, self_: Value, dim: Optional[List[int]], unbiased: bool, keepdim: bool, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(dim):
+            if dim is not None:
+                dim = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dim]
+                dim = torch_dialect.PrimListConstructOp(dim)
+            else:
+                dim = torch_dialect.ConstantNoneOp()
+        else:
+            dim = get_op_result_or_value(dim)
+            assert str(dim.type) == '!torch.list<int>', f'`dim` should be a !torch.list<int> but is {type(dim).__module__}.{type(dim).__name__}'
+            
+        if not is_mlir_value(unbiased):
+            unbiased = torch_dialect.ConstantBoolOp(unbiased)
+        else:
+            unbiased = get_op_result_or_value(unbiased)
+            assert str(unbiased.type) == '!torch.bool', f'`unbiased` should be a !torch.bool but is {type(unbiased).__module__}.{type(unbiased).__name__}'
+            
+        if not is_mlir_value(keepdim):
+            keepdim = torch_dialect.ConstantBoolOp(keepdim)
+        else:
+            keepdim = get_op_result_or_value(keepdim)
+            assert str(keepdim.type) == '!torch.bool', f'`keepdim` should be a !torch.bool but is {type(keepdim).__module__}.{type(keepdim).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenVarDimOp, self).__init__(result_type, self_, dim, unbiased, keepdim, loc=loc, ip=ip)
+        
+    
+class AtenVarCorrectionOp:
+    def __init__(self, self_: Value, dim: Optional[List[int]], correction: Optional[int], keepdim: bool, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(dim):
+            if dim is not None:
+                dim = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dim]
+                dim = torch_dialect.PrimListConstructOp(dim)
+            else:
+                dim = torch_dialect.ConstantNoneOp()
+        else:
+            dim = get_op_result_or_value(dim)
+            assert str(dim.type) == '!torch.list<int>', f'`dim` should be a !torch.list<int> but is {type(dim).__module__}.{type(dim).__name__}'
+            
+        if not is_mlir_value(correction):
+            if correction is not None:
+                correction = torch_dialect.ConstantIntOp(correction)
+            else:
+                correction = torch_dialect.ConstantNoneOp()
+        else:
+            correction = get_op_result_or_value(correction)
+            assert str(correction.type) == '!torch.int', f'`correction` should be a !torch.int but is {type(correction).__module__}.{type(correction).__name__}'
+            
+        if not is_mlir_value(keepdim):
+            keepdim = torch_dialect.ConstantBoolOp(keepdim)
+        else:
+            keepdim = get_op_result_or_value(keepdim)
+            assert str(keepdim.type) == '!torch.bool', f'`keepdim` should be a !torch.bool but is {type(keepdim).__module__}.{type(keepdim).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenVarCorrectionOp, self).__init__(result_type, self_, dim, correction, keepdim, loc=loc, ip=ip)
+        
+    
+class AtenVarMeanCorrectionOp:
+    def __init__(self, self_: Value, dim: Optional[List[int]], correction: Optional[int], keepdim: bool, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(dim):
+            if dim is not None:
+                dim = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dim]
+                dim = torch_dialect.PrimListConstructOp(dim)
+            else:
+                dim = torch_dialect.ConstantNoneOp()
+        else:
+            dim = get_op_result_or_value(dim)
+            assert str(dim.type) == '!torch.list<int>', f'`dim` should be a !torch.list<int> but is {type(dim).__module__}.{type(dim).__name__}'
+            
+        if not is_mlir_value(correction):
+            if correction is not None:
+                correction = torch_dialect.ConstantIntOp(correction)
+            else:
+                correction = torch_dialect.ConstantNoneOp()
+        else:
+            correction = get_op_result_or_value(correction)
+            assert str(correction.type) == '!torch.int', f'`correction` should be a !torch.int but is {type(correction).__module__}.{type(correction).__name__}'
+            
+        if not is_mlir_value(keepdim):
+            keepdim = torch_dialect.ConstantBoolOp(keepdim)
+        else:
+            keepdim = get_op_result_or_value(keepdim)
+            assert str(keepdim.type) == '!torch.bool', f'`keepdim` should be a !torch.bool but is {type(keepdim).__module__}.{type(keepdim).__name__}'
+            
+        result0_type = Type.parse("!torch.vtensor")
+        result1_type = Type.parse("!torch.vtensor")
+        super(AtenVarMeanCorrectionOp, self).__init__(result0_type, result1_type, self_, dim, correction, keepdim, loc=loc, ip=ip)
         
     
 class AtenVarMeanOp:
@@ -4596,6 +5396,51 @@ class AtenBincountOp:
         super(AtenBincountOp, self).__init__(result_type, self_, weights, minlength, loc=loc, ip=ip)
         
     
+class AtenLinalgVectorNormOp:
+    def __init__(self, self_: Value, ord: Number, dim: Optional[List[int]], keepdim: bool, dtype: Optional[int], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(ord):
+            ord = torch_dialect.ConstantNumberOp(ord)
+        else:
+            ord = get_op_result_or_value(ord)
+            assert str(ord.type) in {'!torch.float', '!torch.int'}, f'`ord` should be a !torch.number but is {type(ord).__module__}.{type(ord).__name__}'
+            
+        if not is_mlir_value(dim):
+            if dim is not None:
+                dim = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dim]
+                dim = torch_dialect.PrimListConstructOp(dim)
+            else:
+                dim = torch_dialect.ConstantNoneOp()
+        else:
+            dim = get_op_result_or_value(dim)
+            assert str(dim.type) == '!torch.list<int>', f'`dim` should be a !torch.list<int> but is {type(dim).__module__}.{type(dim).__name__}'
+            
+        if not is_mlir_value(keepdim):
+            keepdim = torch_dialect.ConstantBoolOp(keepdim)
+        else:
+            keepdim = get_op_result_or_value(keepdim)
+            assert str(keepdim.type) == '!torch.bool', f'`keepdim` should be a !torch.bool but is {type(keepdim).__module__}.{type(keepdim).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenLinalgVectorNormOp, self).__init__(result_type, self_, ord, dim, keepdim, dtype, loc=loc, ip=ip)
+        
+    
 class AtenFrobeniusNormDimOp:
     def __init__(self, self_: Value, dim: List[int], keepdim: bool, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
@@ -4607,7 +5452,7 @@ class AtenFrobeniusNormDimOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(dim):
-            dim = list(map(torch_dialect.ConstantIntOp, dim))
+            dim = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dim]
             dim = torch_dialect.PrimListConstructOp(dim)
         else:
             dim = get_op_result_or_value(dim)
@@ -4660,14 +5505,14 @@ class AtenUpsampleNearest2dBackwardOp:
             assert str(grad_output.type).startswith("!torch.vtensor"), f'`grad_output` should be a torch.vtensor but is {type(grad_output).__module__}.{type(grad_output).__name__}'
             
         if not is_mlir_value(output_size):
-            output_size = list(map(torch_dialect.ConstantIntOp, output_size))
+            output_size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in output_size]
             output_size = torch_dialect.PrimListConstructOp(output_size)
         else:
             output_size = get_op_result_or_value(output_size)
             assert str(output_size.type) == '!torch.list<int>', f'`output_size` should be a !torch.list<int> but is {type(output_size).__module__}.{type(output_size).__name__}'
             
         if not is_mlir_value(input_size):
-            input_size = list(map(torch_dialect.ConstantIntOp, input_size))
+            input_size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in input_size]
             input_size = torch_dialect.PrimListConstructOp(input_size)
         else:
             input_size = get_op_result_or_value(input_size)
@@ -4696,7 +5541,7 @@ class AtenUpsampleNearest2dBackwardOp:
         
     
 class AtenConstantPadNdOp:
-    def __init__(self, self_: Value, pad: List[int], value: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, pad: List[int], value: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -4706,7 +5551,7 @@ class AtenConstantPadNdOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(pad):
-            pad = list(map(torch_dialect.ConstantIntOp, pad))
+            pad = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in pad]
             pad = torch_dialect.PrimListConstructOp(pad)
         else:
             pad = get_op_result_or_value(pad)
@@ -4733,7 +5578,7 @@ class AtenPadOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(pad):
-            pad = list(map(torch_dialect.ConstantIntOp, pad))
+            pad = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in pad]
             pad = torch_dialect.PrimListConstructOp(pad)
         else:
             pad = get_op_result_or_value(pad)
@@ -4861,6 +5706,336 @@ class AtenIsFloatingPointOp:
         super(AtenIsFloatingPointOp, self).__init__(self_, loc=loc, ip=ip)
         
     
+class AtenOnesOp:
+    def __init__(self, size: List[int], dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(size):
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
+            size = torch_dialect.PrimListConstructOp(size)
+        else:
+            size = get_op_result_or_value(size)
+            assert str(size.type) == '!torch.list<int>', f'`size` should be a !torch.list<int> but is {type(size).__module__}.{type(size).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenOnesOp, self).__init__(result_type, size, dtype, layout, device, pin_memory, loc=loc, ip=ip)
+        
+    
+class AtenNewOnesOp:
+    def __init__(self, self_: Value, size: List[int], dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(size):
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
+            size = torch_dialect.PrimListConstructOp(size)
+        else:
+            size = get_op_result_or_value(size)
+            assert str(size.type) == '!torch.list<int>', f'`size` should be a !torch.list<int> but is {type(size).__module__}.{type(size).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenNewOnesOp, self).__init__(result_type, self_, size, dtype, layout, device, pin_memory, loc=loc, ip=ip)
+        
+    
+class AtenZerosOp:
+    def __init__(self, size: List[int], dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(size):
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
+            size = torch_dialect.PrimListConstructOp(size)
+        else:
+            size = get_op_result_or_value(size)
+            assert str(size.type) == '!torch.list<int>', f'`size` should be a !torch.list<int> but is {type(size).__module__}.{type(size).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenZerosOp, self).__init__(result_type, size, dtype, layout, device, pin_memory, loc=loc, ip=ip)
+        
+    
+class AtenNewZerosOp:
+    def __init__(self, self_: Value, size: List[int], dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(size):
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
+            size = torch_dialect.PrimListConstructOp(size)
+        else:
+            size = get_op_result_or_value(size)
+            assert str(size.type) == '!torch.list<int>', f'`size` should be a !torch.list<int> but is {type(size).__module__}.{type(size).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenNewZerosOp, self).__init__(result_type, self_, size, dtype, layout, device, pin_memory, loc=loc, ip=ip)
+        
+    
+class AtenTensorOp:
+    def __init__(self, data: List[Value], dtype: Optional[int], device: Optional[Device], requires_grad: bool, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(data):
+            data = torch_dialect.PrimListConstructOp(data)
+        else:
+            data = get_op_result_or_value(data)
+            assert str(data.type) == '!torch.list<Tensor>', f'`data` should be a !torch.list<Tensor> but is {type(data).__module__}.{type(data).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(requires_grad):
+            requires_grad = torch_dialect.ConstantBoolOp(requires_grad)
+        else:
+            requires_grad = get_op_result_or_value(requires_grad)
+            assert str(requires_grad.type) == '!torch.bool', f'`requires_grad` should be a !torch.bool but is {type(requires_grad).__module__}.{type(requires_grad).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenTensorOp, self).__init__(result_type, data, dtype, device, requires_grad, loc=loc, ip=ip)
+        
+    
+class AtenTensorBoolOp:
+    def __init__(self, t: bool, dtype: Optional[int], device: Optional[Device], requires_grad: bool, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(t):
+            t = torch_dialect.ConstantBoolOp(t)
+        else:
+            t = get_op_result_or_value(t)
+            assert str(t.type) == '!torch.bool', f'`t` should be a !torch.bool but is {type(t).__module__}.{type(t).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(requires_grad):
+            requires_grad = torch_dialect.ConstantBoolOp(requires_grad)
+        else:
+            requires_grad = get_op_result_or_value(requires_grad)
+            assert str(requires_grad.type) == '!torch.bool', f'`requires_grad` should be a !torch.bool but is {type(requires_grad).__module__}.{type(requires_grad).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenTensorBoolOp, self).__init__(result_type, t, dtype, device, requires_grad, loc=loc, ip=ip)
+        
+    
+class AtenTensorIntOp:
+    def __init__(self, t: int, dtype: Optional[int], device: Optional[Device], requires_grad: bool, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(t):
+            t = torch_dialect.ConstantIntOp(t)
+        else:
+            t = get_op_result_or_value(t)
+            assert str(t.type) == '!torch.int', f'`t` should be a !torch.int but is {type(t).__module__}.{type(t).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(requires_grad):
+            requires_grad = torch_dialect.ConstantBoolOp(requires_grad)
+        else:
+            requires_grad = get_op_result_or_value(requires_grad)
+            assert str(requires_grad.type) == '!torch.bool', f'`requires_grad` should be a !torch.bool but is {type(requires_grad).__module__}.{type(requires_grad).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenTensorIntOp, self).__init__(result_type, t, dtype, device, requires_grad, loc=loc, ip=ip)
+        
+    
 class Aten_ShapeAsTensorOp:
     def __init__(self, self_: Value, *, loc=None, ip=None):
         if not is_mlir_value(self_):
@@ -4890,7 +6065,7 @@ class AtenAllBoolOp:
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
-            self_ = list(map(torch_dialect.ConstantBoolOp, self_))
+            self_ = [torch_dialect.ConstantBoolOp(a) if not is_mlir_value(a) else a for a in self_]
             self_ = torch_dialect.PrimListConstructOp(self_)
         else:
             self_ = get_op_result_or_value(self_)
@@ -4938,8 +6113,176 @@ class AtenAnyDimOp:
         super(AtenAnyDimOp, self).__init__(result_type, self_, dim, keepdim, loc=loc, ip=ip)
         
     
+class AtenArangeOp:
+    def __init__(self, end: Number, dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(end):
+            end = torch_dialect.ConstantNumberOp(end)
+        else:
+            end = get_op_result_or_value(end)
+            assert str(end.type) in {'!torch.float', '!torch.int'}, f'`end` should be a !torch.number but is {type(end).__module__}.{type(end).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenArangeOp, self).__init__(result_type, end, dtype, layout, device, pin_memory, loc=loc, ip=ip)
+        
+    
+class AtenArangeStartOp:
+    def __init__(self, start: Number, end: Number, dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(start):
+            start = torch_dialect.ConstantNumberOp(start)
+        else:
+            start = get_op_result_or_value(start)
+            assert str(start.type) in {'!torch.float', '!torch.int'}, f'`start` should be a !torch.number but is {type(start).__module__}.{type(start).__name__}'
+            
+        if not is_mlir_value(end):
+            end = torch_dialect.ConstantNumberOp(end)
+        else:
+            end = get_op_result_or_value(end)
+            assert str(end.type) in {'!torch.float', '!torch.int'}, f'`end` should be a !torch.number but is {type(end).__module__}.{type(end).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenArangeStartOp, self).__init__(result_type, start, end, dtype, layout, device, pin_memory, loc=loc, ip=ip)
+        
+    
+class AtenArangeStartStepOp:
+    def __init__(self, start: Number, end: Number, step: Number, dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(start):
+            start = torch_dialect.ConstantNumberOp(start)
+        else:
+            start = get_op_result_or_value(start)
+            assert str(start.type) in {'!torch.float', '!torch.int'}, f'`start` should be a !torch.number but is {type(start).__module__}.{type(start).__name__}'
+            
+        if not is_mlir_value(end):
+            end = torch_dialect.ConstantNumberOp(end)
+        else:
+            end = get_op_result_or_value(end)
+            assert str(end.type) in {'!torch.float', '!torch.int'}, f'`end` should be a !torch.number but is {type(end).__module__}.{type(end).__name__}'
+            
+        if not is_mlir_value(step):
+            step = torch_dialect.ConstantNumberOp(step)
+        else:
+            step = get_op_result_or_value(step)
+            assert str(step.type) in {'!torch.float', '!torch.int'}, f'`step` should be a !torch.number but is {type(step).__module__}.{type(step).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenArangeStartStepOp, self).__init__(result_type, start, end, step, dtype, layout, device, pin_memory, loc=loc, ip=ip)
+        
+    
 class AtenArangeStartOutOp:
-    def __init__(self, start: "Number", end: "Number", step: "Number", out: Value, *, loc=None, ip=None):
+    def __init__(self, start: Number, end: Number, step: Number, out: Value, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(start):
@@ -5138,6 +6481,71 @@ class AtenCopy_Op:
         super(AtenCopy_Op, self).__init__(result_type, self_, src, non_blocking, loc=loc, ip=ip)
         
     
+class Aten_ToCopyOp:
+    def __init__(self, self_: Value, dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], non_blocking: bool, memory_format: Optional[int], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        if not is_mlir_value(non_blocking):
+            non_blocking = torch_dialect.ConstantBoolOp(non_blocking)
+        else:
+            non_blocking = get_op_result_or_value(non_blocking)
+            assert str(non_blocking.type) == '!torch.bool', f'`non_blocking` should be a !torch.bool but is {type(non_blocking).__module__}.{type(non_blocking).__name__}'
+            
+        if not is_mlir_value(memory_format):
+            if memory_format is not None:
+                memory_format = torch_dialect.ConstantIntOp(memory_format)
+            else:
+                memory_format = torch_dialect.ConstantNoneOp()
+        else:
+            memory_format = get_op_result_or_value(memory_format)
+            assert str(memory_format.type) == '!torch.int', f'`memory_format` should be a !torch.int but is {type(memory_format).__module__}.{type(memory_format).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(Aten_ToCopyOp, self).__init__(result_type, self_, dtype, layout, device, pin_memory, non_blocking, memory_format, loc=loc, ip=ip)
+        
+    
 class AtenDetachOp:
     def __init__(self, self_: Value, *, loc=None, ip=None):
         if not is_mlir_value(self_):
@@ -5327,6 +6735,300 @@ class Aten_EmbeddingBagOp:
         super(Aten_EmbeddingBagOp, self).__init__(result0_type, result1_type, result2_type, result3_type, weight, indices, offsets, scale_grad_by_freq, mode, sparse, per_sample_weights, include_last_offset, padding_idx, loc=loc, ip=ip)
         
     
+class AtenEmptyLikeOp:
+    def __init__(self, self_: Value, dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], memory_format: Optional[int], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        if not is_mlir_value(memory_format):
+            if memory_format is not None:
+                memory_format = torch_dialect.ConstantIntOp(memory_format)
+            else:
+                memory_format = torch_dialect.ConstantNoneOp()
+        else:
+            memory_format = get_op_result_or_value(memory_format)
+            assert str(memory_format.type) == '!torch.int', f'`memory_format` should be a !torch.int but is {type(memory_format).__module__}.{type(memory_format).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenEmptyLikeOp, self).__init__(result_type, self_, dtype, layout, device, pin_memory, memory_format, loc=loc, ip=ip)
+        
+    
+class AtenNewEmptyOp:
+    def __init__(self, self_: Value, size: List[int], dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(size):
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
+            size = torch_dialect.PrimListConstructOp(size)
+        else:
+            size = get_op_result_or_value(size)
+            assert str(size.type) == '!torch.list<int>', f'`size` should be a !torch.list<int> but is {type(size).__module__}.{type(size).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenNewEmptyOp, self).__init__(result_type, self_, size, dtype, layout, device, pin_memory, loc=loc, ip=ip)
+        
+    
+class AtenZerosLikeOp:
+    def __init__(self, self_: Value, dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], memory_format: Optional[int], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        if not is_mlir_value(memory_format):
+            if memory_format is not None:
+                memory_format = torch_dialect.ConstantIntOp(memory_format)
+            else:
+                memory_format = torch_dialect.ConstantNoneOp()
+        else:
+            memory_format = get_op_result_or_value(memory_format)
+            assert str(memory_format.type) == '!torch.int', f'`memory_format` should be a !torch.int but is {type(memory_format).__module__}.{type(memory_format).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenZerosLikeOp, self).__init__(result_type, self_, dtype, layout, device, pin_memory, memory_format, loc=loc, ip=ip)
+        
+    
+class AtenOnesLikeOp:
+    def __init__(self, self_: Value, dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], memory_format: Optional[int], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        if not is_mlir_value(memory_format):
+            if memory_format is not None:
+                memory_format = torch_dialect.ConstantIntOp(memory_format)
+            else:
+                memory_format = torch_dialect.ConstantNoneOp()
+        else:
+            memory_format = get_op_result_or_value(memory_format)
+            assert str(memory_format.type) == '!torch.int', f'`memory_format` should be a !torch.int but is {type(memory_format).__module__}.{type(memory_format).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenOnesLikeOp, self).__init__(result_type, self_, dtype, layout, device, pin_memory, memory_format, loc=loc, ip=ip)
+        
+    
+class AtenEmptyMemoryFormatOp:
+    def __init__(self, size: List[int], dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], memory_format: Optional[int], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(size):
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
+            size = torch_dialect.PrimListConstructOp(size)
+        else:
+            size = get_op_result_or_value(size)
+            assert str(size.type) == '!torch.list<int>', f'`size` should be a !torch.list<int> but is {type(size).__module__}.{type(size).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        if not is_mlir_value(memory_format):
+            if memory_format is not None:
+                memory_format = torch_dialect.ConstantIntOp(memory_format)
+            else:
+                memory_format = torch_dialect.ConstantNoneOp()
+        else:
+            memory_format = get_op_result_or_value(memory_format)
+            assert str(memory_format.type) == '!torch.int', f'`memory_format` should be a !torch.int but is {type(memory_format).__module__}.{type(memory_format).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenEmptyMemoryFormatOp, self).__init__(result_type, size, dtype, layout, device, pin_memory, memory_format, loc=loc, ip=ip)
+        
+    
 class AtenExpandOp:
     def __init__(self, self_: Value, size: List[int], implicit: bool, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
@@ -5338,7 +7040,7 @@ class AtenExpandOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(size):
-            size = list(map(torch_dialect.ConstantIntOp, size))
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
             size = torch_dialect.PrimListConstructOp(size)
         else:
             size = get_op_result_or_value(size)
@@ -5383,7 +7085,7 @@ class AtenBroadcastToOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(size):
-            size = list(map(torch_dialect.ConstantIntOp, size))
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
             size = torch_dialect.PrimListConstructOp(size)
         else:
             size = get_op_result_or_value(size)
@@ -5391,6 +7093,26 @@ class AtenBroadcastToOp:
             
         result_type = Type.parse("!torch.vtensor")
         super(AtenBroadcastToOp, self).__init__(result_type, self_, size, loc=loc, ip=ip)
+        
+    
+class AtenIndexTensorOp:
+    def __init__(self, self_: Value, indices: List[Optional[Value]], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(indices):
+            indices = torch_dialect.PrimListConstructOp(indices)
+        else:
+            indices = get_op_result_or_value(indices)
+            assert str(indices.type) == '!torch.list<Tensor>', f'`indices` should be a !torch.list<Tensor> but is {type(indices).__module__}.{type(indices).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenIndexTensorOp, self).__init__(result_type, self_, indices, loc=loc, ip=ip)
         
     
 class AtenIndexTensorHackedTwinOp:
@@ -5437,6 +7159,82 @@ class AtenIndexSelectOp:
             
         result_type = Type.parse("!torch.vtensor")
         super(AtenIndexSelectOp, self).__init__(result_type, self_, dim, index, loc=loc, ip=ip)
+        
+    
+class Aten_IndexPutImplOp:
+    def __init__(self, self_: Value, indices: List[Optional[Value]], values: Value, accumulate: bool, unsafe: bool, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(indices):
+            indices = torch_dialect.PrimListConstructOp(indices)
+        else:
+            indices = get_op_result_or_value(indices)
+            assert str(indices.type) == '!torch.list<Tensor>', f'`indices` should be a !torch.list<Tensor> but is {type(indices).__module__}.{type(indices).__name__}'
+            
+        if not is_mlir_value(values):
+            assert is_mlir_value(values), f'`values` should be a Value but is {type(values).__module__}.{type(values).__name__}'
+        else:
+            values = get_op_result_or_value(values)
+            assert str(values.type).startswith("!torch.vtensor"), f'`values` should be a torch.vtensor but is {type(values).__module__}.{type(values).__name__}'
+            
+        if not is_mlir_value(accumulate):
+            accumulate = torch_dialect.ConstantBoolOp(accumulate)
+        else:
+            accumulate = get_op_result_or_value(accumulate)
+            assert str(accumulate.type) == '!torch.bool', f'`accumulate` should be a !torch.bool but is {type(accumulate).__module__}.{type(accumulate).__name__}'
+            
+        if not is_mlir_value(unsafe):
+            unsafe = torch_dialect.ConstantBoolOp(unsafe)
+        else:
+            unsafe = get_op_result_or_value(unsafe)
+            assert str(unsafe.type) == '!torch.bool', f'`unsafe` should be a !torch.bool but is {type(unsafe).__module__}.{type(unsafe).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(Aten_IndexPutImplOp, self).__init__(result_type, self_, indices, values, accumulate, unsafe, loc=loc, ip=ip)
+        
+    
+class Aten_IndexPutImpl_Op:
+    def __init__(self, self_: Value, indices: List[Optional[Value]], values: Value, accumulate: bool, unsafe: bool, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(indices):
+            indices = torch_dialect.PrimListConstructOp(indices)
+        else:
+            indices = get_op_result_or_value(indices)
+            assert str(indices.type) == '!torch.list<Tensor>', f'`indices` should be a !torch.list<Tensor> but is {type(indices).__module__}.{type(indices).__name__}'
+            
+        if not is_mlir_value(values):
+            assert is_mlir_value(values), f'`values` should be a Value but is {type(values).__module__}.{type(values).__name__}'
+        else:
+            values = get_op_result_or_value(values)
+            assert str(values.type).startswith("!torch.vtensor"), f'`values` should be a torch.vtensor but is {type(values).__module__}.{type(values).__name__}'
+            
+        if not is_mlir_value(accumulate):
+            accumulate = torch_dialect.ConstantBoolOp(accumulate)
+        else:
+            accumulate = get_op_result_or_value(accumulate)
+            assert str(accumulate.type) == '!torch.bool', f'`accumulate` should be a !torch.bool but is {type(accumulate).__module__}.{type(accumulate).__name__}'
+            
+        if not is_mlir_value(unsafe):
+            unsafe = torch_dialect.ConstantBoolOp(unsafe)
+        else:
+            unsafe = get_op_result_or_value(unsafe)
+            assert str(unsafe.type) == '!torch.bool', f'`unsafe` should be a !torch.bool but is {type(unsafe).__module__}.{type(unsafe).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(Aten_IndexPutImpl_Op, self).__init__(result_type, self_, indices, values, accumulate, unsafe, loc=loc, ip=ip)
         
     
 class AtenItemOp:
@@ -5490,7 +7288,7 @@ class AtenRepeatOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(repeats):
-            repeats = list(map(torch_dialect.ConstantIntOp, repeats))
+            repeats = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in repeats]
             repeats = torch_dialect.PrimListConstructOp(repeats)
         else:
             repeats = get_op_result_or_value(repeats)
@@ -5511,7 +7309,7 @@ class AtenReshapeOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(shape):
-            shape = list(map(torch_dialect.ConstantIntOp, shape))
+            shape = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in shape]
             shape = torch_dialect.PrimListConstructOp(shape)
         else:
             shape = get_op_result_or_value(shape)
@@ -5532,14 +7330,14 @@ class Aten_ReshapeAliasOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(size):
-            size = list(map(torch_dialect.ConstantIntOp, size))
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
             size = torch_dialect.PrimListConstructOp(size)
         else:
             size = get_op_result_or_value(size)
             assert str(size.type) == '!torch.list<int>', f'`size` should be a !torch.list<int> but is {type(size).__module__}.{type(size).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
@@ -5560,7 +7358,7 @@ class AtenResize_Op:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(size):
-            size = list(map(torch_dialect.ConstantIntOp, size))
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
             size = torch_dialect.PrimListConstructOp(size)
         else:
             size = get_op_result_or_value(size)
@@ -5667,6 +7465,45 @@ class AtenSumOp:
         super(AtenSumOp, self).__init__(result_type, self_, dtype, loc=loc, ip=ip)
         
     
+class AtenSumDimIntListOp:
+    def __init__(self, self_: Value, dim: Optional[List[int]], keepdim: bool, dtype: Optional[int], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(dim):
+            if dim is not None:
+                dim = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dim]
+                dim = torch_dialect.PrimListConstructOp(dim)
+            else:
+                dim = torch_dialect.ConstantNoneOp()
+        else:
+            dim = get_op_result_or_value(dim)
+            assert str(dim.type) == '!torch.list<int>', f'`dim` should be a !torch.list<int> but is {type(dim).__module__}.{type(dim).__name__}'
+            
+        if not is_mlir_value(keepdim):
+            keepdim = torch_dialect.ConstantBoolOp(keepdim)
+        else:
+            keepdim = get_op_result_or_value(keepdim)
+            assert str(keepdim.type) == '!torch.bool', f'`keepdim` should be a !torch.bool but is {type(keepdim).__module__}.{type(keepdim).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenSumDimIntListOp, self).__init__(result_type, self_, dim, keepdim, dtype, loc=loc, ip=ip)
+        
+    
 class AtenMaxOp:
     def __init__(self, self_: Value, *, loc=None, ip=None):
         if not is_mlir_value(self_):
@@ -5717,7 +7554,7 @@ class AtenAmaxOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(dim):
-            dim = list(map(torch_dialect.ConstantIntOp, dim))
+            dim = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dim]
             dim = torch_dialect.PrimListConstructOp(dim)
         else:
             dim = get_op_result_or_value(dim)
@@ -5774,6 +7611,77 @@ class AtenToDtypeOp:
         super(AtenToDtypeOp, self).__init__(result_type, self_, dtype, non_blocking, copy, memory_format, loc=loc, ip=ip)
         
     
+class AtenToDtypeLayoutOp:
+    def __init__(self, self_: Value, dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], non_blocking: bool, copy: bool, memory_format: Optional[int], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        if not is_mlir_value(non_blocking):
+            non_blocking = torch_dialect.ConstantBoolOp(non_blocking)
+        else:
+            non_blocking = get_op_result_or_value(non_blocking)
+            assert str(non_blocking.type) == '!torch.bool', f'`non_blocking` should be a !torch.bool but is {type(non_blocking).__module__}.{type(non_blocking).__name__}'
+            
+        if not is_mlir_value(copy):
+            copy = torch_dialect.ConstantBoolOp(copy)
+        else:
+            copy = get_op_result_or_value(copy)
+            assert str(copy.type) == '!torch.bool', f'`copy` should be a !torch.bool but is {type(copy).__module__}.{type(copy).__name__}'
+            
+        if not is_mlir_value(memory_format):
+            if memory_format is not None:
+                memory_format = torch_dialect.ConstantIntOp(memory_format)
+            else:
+                memory_format = torch_dialect.ConstantNoneOp()
+        else:
+            memory_format = get_op_result_or_value(memory_format)
+            assert str(memory_format.type) == '!torch.int', f'`memory_format` should be a !torch.int but is {type(memory_format).__module__}.{type(memory_format).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenToDtypeLayoutOp, self).__init__(result_type, self_, dtype, layout, device, pin_memory, non_blocking, copy, memory_format, loc=loc, ip=ip)
+        
+    
 class AtenToOtherOp:
     def __init__(self, self_: Value, other: Value, non_blocking: bool, copy: bool, memory_format: Optional[int], *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
@@ -5815,6 +7723,97 @@ class AtenToOtherOp:
         super(AtenToOtherOp, self).__init__(result_type, self_, other, non_blocking, copy, memory_format, loc=loc, ip=ip)
         
     
+class AtenToPrimDeviceOp:
+    def __init__(self, self_: Value, device: Optional[Device], dtype: Optional[int], non_blocking: bool, copy: bool, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(non_blocking):
+            non_blocking = torch_dialect.ConstantBoolOp(non_blocking)
+        else:
+            non_blocking = get_op_result_or_value(non_blocking)
+            assert str(non_blocking.type) == '!torch.bool', f'`non_blocking` should be a !torch.bool but is {type(non_blocking).__module__}.{type(non_blocking).__name__}'
+            
+        if not is_mlir_value(copy):
+            copy = torch_dialect.ConstantBoolOp(copy)
+        else:
+            copy = get_op_result_or_value(copy)
+            assert str(copy.type) == '!torch.bool', f'`copy` should be a !torch.bool but is {type(copy).__module__}.{type(copy).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenToPrimDeviceOp, self).__init__(result_type, self_, device, dtype, non_blocking, copy, loc=loc, ip=ip)
+        
+    
+class AtenToDeviceOp:
+    def __init__(self, self_: Value, device: Device, dtype: int, non_blocking: bool, copy: bool, memory_format: Optional[int], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(device):
+            device = torch_dialect.ConstantDeviceOp(device)
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(dtype):
+            dtype = torch_dialect.ConstantIntOp(dtype)
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(non_blocking):
+            non_blocking = torch_dialect.ConstantBoolOp(non_blocking)
+        else:
+            non_blocking = get_op_result_or_value(non_blocking)
+            assert str(non_blocking.type) == '!torch.bool', f'`non_blocking` should be a !torch.bool but is {type(non_blocking).__module__}.{type(non_blocking).__name__}'
+            
+        if not is_mlir_value(copy):
+            copy = torch_dialect.ConstantBoolOp(copy)
+        else:
+            copy = get_op_result_or_value(copy)
+            assert str(copy.type) == '!torch.bool', f'`copy` should be a !torch.bool but is {type(copy).__module__}.{type(copy).__name__}'
+            
+        if not is_mlir_value(memory_format):
+            if memory_format is not None:
+                memory_format = torch_dialect.ConstantIntOp(memory_format)
+            else:
+                memory_format = torch_dialect.ConstantNoneOp()
+        else:
+            memory_format = get_op_result_or_value(memory_format)
+            assert str(memory_format.type) == '!torch.int', f'`memory_format` should be a !torch.int but is {type(memory_format).__module__}.{type(memory_format).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenToDeviceOp, self).__init__(result_type, self_, device, dtype, non_blocking, copy, memory_format, loc=loc, ip=ip)
+        
+    
 class AtenTypeAsOp:
     def __init__(self, self_: Value, other: Value, *, loc=None, ip=None):
         if not is_mlir_value(self_):
@@ -5844,7 +7843,7 @@ class AtenViewOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(size):
-            size = list(map(torch_dialect.ConstantIntOp, size))
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
             size = torch_dialect.PrimListConstructOp(size)
         else:
             size = get_op_result_or_value(size)
@@ -5865,7 +7864,7 @@ class Aten_UnsafeViewOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(size):
-            size = list(map(torch_dialect.ConstantIntOp, size))
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
             size = torch_dialect.PrimListConstructOp(size)
         else:
             size = get_op_result_or_value(size)
@@ -5900,7 +7899,7 @@ class AtenWhereSelfOp:
         
     
 class AtenWhereScalarOp:
-    def __init__(self, condition: Value, self_: "Number", other: "Number", *, loc=None, ip=None):
+    def __init__(self, condition: Value, self_: Number, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(condition):
@@ -5926,7 +7925,7 @@ class AtenWhereScalarOp:
         
     
 class AtenWhereScalarOtherOp:
-    def __init__(self, condition: Value, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, condition: Value, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(condition):
@@ -5952,7 +7951,7 @@ class AtenWhereScalarOtherOp:
         
     
 class AtenWhereScalarSelfOp:
-    def __init__(self, condition: Value, self_: "Number", other: Value, *, loc=None, ip=None):
+    def __init__(self, condition: Value, self_: Number, other: Value, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(condition):
@@ -6130,6 +8129,44 @@ class AtenFloatImplicitOp:
         super(AtenFloatImplicitOp, self).__init__(a, loc=loc, ip=ip)
         
     
+class AtenTensorFloatOp:
+    def __init__(self, t: float, dtype: Optional[int], device: Optional[Device], requires_grad: bool, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(t):
+            t = torch_dialect.ConstantFloatOp(t)
+        else:
+            t = get_op_result_or_value(t)
+            assert str(t.type) == '!torch.float', f'`t` should be a !torch.float but is {type(t).__module__}.{type(t).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(requires_grad):
+            requires_grad = torch_dialect.ConstantBoolOp(requires_grad)
+        else:
+            requires_grad = get_op_result_or_value(requires_grad)
+            assert str(requires_grad.type) == '!torch.bool', f'`requires_grad` should be a !torch.bool but is {type(requires_grad).__module__}.{type(requires_grad).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenTensorFloatOp, self).__init__(result_type, t, dtype, device, requires_grad, loc=loc, ip=ip)
+        
+    
 class AtenIntTensorOp:
     def __init__(self, a: Value, *, loc=None, ip=None):
         if not is_mlir_value(a):
@@ -6258,8 +8295,130 @@ class AtenNumpyTOp:
         super(AtenNumpyTOp, self).__init__(result_type, self_, loc=loc, ip=ip)
         
     
+class AtenFullOp:
+    def __init__(self, size: List[int], fill_value: Number, dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(size):
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
+            size = torch_dialect.PrimListConstructOp(size)
+        else:
+            size = get_op_result_or_value(size)
+            assert str(size.type) == '!torch.list<int>', f'`size` should be a !torch.list<int> but is {type(size).__module__}.{type(size).__name__}'
+            
+        if not is_mlir_value(fill_value):
+            fill_value = torch_dialect.ConstantNumberOp(fill_value)
+        else:
+            fill_value = get_op_result_or_value(fill_value)
+            assert str(fill_value.type) in {'!torch.float', '!torch.int'}, f'`fill_value` should be a !torch.number but is {type(fill_value).__module__}.{type(fill_value).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenFullOp, self).__init__(result_type, size, fill_value, dtype, layout, device, pin_memory, loc=loc, ip=ip)
+        
+    
+class AtenFullLikeOp:
+    def __init__(self, self_: Value, fill_value: Number, dtype: Optional[int], layout: Optional[int], device: Optional[Device], pin_memory: Optional[bool], memory_format: Optional[int], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(fill_value):
+            fill_value = torch_dialect.ConstantNumberOp(fill_value)
+        else:
+            fill_value = get_op_result_or_value(fill_value)
+            assert str(fill_value.type) in {'!torch.float', '!torch.int'}, f'`fill_value` should be a !torch.number but is {type(fill_value).__module__}.{type(fill_value).__name__}'
+            
+        if not is_mlir_value(dtype):
+            if dtype is not None:
+                dtype = torch_dialect.ConstantIntOp(dtype)
+            else:
+                dtype = torch_dialect.ConstantNoneOp()
+        else:
+            dtype = get_op_result_or_value(dtype)
+            assert str(dtype.type) == '!torch.int', f'`dtype` should be a !torch.int but is {type(dtype).__module__}.{type(dtype).__name__}'
+            
+        if not is_mlir_value(layout):
+            if layout is not None:
+                layout = torch_dialect.ConstantIntOp(layout)
+            else:
+                layout = torch_dialect.ConstantNoneOp()
+        else:
+            layout = get_op_result_or_value(layout)
+            assert str(layout.type) == '!torch.int', f'`layout` should be a !torch.int but is {type(layout).__module__}.{type(layout).__name__}'
+            
+        if not is_mlir_value(device):
+            if device is not None:
+                device = torch_dialect.ConstantDeviceOp(device)
+            else:
+                device = torch_dialect.ConstantNoneOp()
+        else:
+            device = get_op_result_or_value(device)
+            assert str(device.type) == '!torch.device', f'`device` should be a !torch.device but is {type(device).__module__}.{type(device).__name__}'
+            
+        if not is_mlir_value(pin_memory):
+            if pin_memory is not None:
+                pin_memory = torch_dialect.ConstantBoolOp(pin_memory)
+            else:
+                pin_memory = torch_dialect.ConstantNoneOp()
+        else:
+            pin_memory = get_op_result_or_value(pin_memory)
+            assert str(pin_memory.type) == '!torch.bool', f'`pin_memory` should be a !torch.bool but is {type(pin_memory).__module__}.{type(pin_memory).__name__}'
+            
+        if not is_mlir_value(memory_format):
+            if memory_format is not None:
+                memory_format = torch_dialect.ConstantIntOp(memory_format)
+            else:
+                memory_format = torch_dialect.ConstantNoneOp()
+        else:
+            memory_format = get_op_result_or_value(memory_format)
+            assert str(memory_format.type) == '!torch.int', f'`memory_format` should be a !torch.int but is {type(memory_format).__module__}.{type(memory_format).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenFullLikeOp, self).__init__(result_type, self_, fill_value, dtype, layout, device, pin_memory, memory_format, loc=loc, ip=ip)
+        
+    
 class AtenBaddbmmOp:
-    def __init__(self, self_: Value, batch1: Value, batch2: Value, beta: "Number", alpha: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, batch1: Value, batch2: Value, beta: Number, alpha: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -6297,7 +8456,7 @@ class AtenBaddbmmOp:
         
     
 class AtenBaddbmm_Op:
-    def __init__(self, self_: Value, batch1: Value, batch2: Value, beta: "Number", alpha: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, batch1: Value, batch2: Value, beta: Number, alpha: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -6395,14 +8554,14 @@ class AtenAsStridedCopyOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(size):
-            size = list(map(torch_dialect.ConstantIntOp, size))
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
             size = torch_dialect.PrimListConstructOp(size)
         else:
             size = get_op_result_or_value(size)
             assert str(size.type) == '!torch.list<int>', f'`size` should be a !torch.list<int> but is {type(size).__module__}.{type(size).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
@@ -6464,7 +8623,7 @@ class AtenExpandCopyOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(size):
-            size = list(map(torch_dialect.ConstantIntOp, size))
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
             size = torch_dialect.PrimListConstructOp(size)
         else:
             size = get_op_result_or_value(size)
@@ -6491,7 +8650,7 @@ class AtenPermuteCopyOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(dims):
-            dims = list(map(torch_dialect.ConstantIntOp, dims))
+            dims = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in dims]
             dims = torch_dialect.PrimListConstructOp(dims)
         else:
             dims = get_op_result_or_value(dims)
@@ -6512,14 +8671,14 @@ class Aten_ReshapeAliasCopyOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(size):
-            size = list(map(torch_dialect.ConstantIntOp, size))
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
             size = torch_dialect.PrimListConstructOp(size)
         else:
             size = get_op_result_or_value(size)
             assert str(size.type) == '!torch.list<int>', f'`size` should be a !torch.list<int> but is {type(size).__module__}.{type(size).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
@@ -6712,7 +8871,7 @@ class AtenViewCopyOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(size):
-            size = list(map(torch_dialect.ConstantIntOp, size))
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
             size = torch_dialect.PrimListConstructOp(size)
         else:
             size = get_op_result_or_value(size)
@@ -6911,14 +9070,14 @@ class AtenAsStridedScatterOp:
             assert str(src.type).startswith("!torch.vtensor"), f'`src` should be a torch.vtensor but is {type(src).__module__}.{type(src).__name__}'
             
         if not is_mlir_value(size):
-            size = list(map(torch_dialect.ConstantIntOp, size))
+            size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in size]
             size = torch_dialect.PrimListConstructOp(size)
         else:
             size = get_op_result_or_value(size)
             assert str(size.type) == '!torch.list<int>', f'`size` should be a !torch.list<int> but is {type(size).__module__}.{type(size).__name__}'
             
         if not is_mlir_value(stride):
-            stride = list(map(torch_dialect.ConstantIntOp, stride))
+            stride = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in stride]
             stride = torch_dialect.PrimListConstructOp(stride)
         else:
             stride = get_op_result_or_value(stride)
@@ -6948,7 +9107,7 @@ class AtenUpsampleNearest2dOp:
             assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(output_size):
-            output_size = list(map(torch_dialect.ConstantIntOp, output_size))
+            output_size = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in output_size]
             output_size = torch_dialect.PrimListConstructOp(output_size)
         else:
             output_size = get_op_result_or_value(output_size)
@@ -6976,12 +9135,32 @@ class AtenUpsampleNearest2dOp:
         super(AtenUpsampleNearest2dOp, self).__init__(result_type, self_, output_size, scales_h, scales_w, loc=loc, ip=ip)
         
     
+class Aten__Contains__StrOp:
+    def __init__(self, dict: Dict[str, Value], key: str, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(dict):
+            assert is_mlir_value(dict), f'`dict` should be a Value but is {type(dict).__module__}.{type(dict).__name__}'
+        else:
+            dict = get_op_result_or_value(dict)
+            # should be Dict(str, t)
+            pass
+            
+        if not is_mlir_value(key):
+            key = torch_dialect.ConstantStrOp(key)
+        else:
+            key = get_op_result_or_value(key)
+            assert str(key.type) == '!torch.str', f'`key` should be a !torch.str but is {type(key).__module__}.{type(key).__name__}'
+            
+        super(Aten__Contains__StrOp, self).__init__(dict, key, loc=loc, ip=ip)
+        
+    
 class Aten__Contains__IntListOp:
     def __init__(self, l: List[int], item: int, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(l):
-            l = list(map(torch_dialect.ConstantIntOp, l))
+            l = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in l]
             l = torch_dialect.PrimListConstructOp(l)
         else:
             l = get_op_result_or_value(l)
@@ -6994,6 +9173,115 @@ class Aten__Contains__IntListOp:
             assert str(item.type) == '!torch.int', f'`item` should be a !torch.int but is {type(item).__module__}.{type(item).__name__}'
             
         super(Aten__Contains__IntListOp, self).__init__(l, item, loc=loc, ip=ip)
+        
+    
+class Aten__Getitem__DictStrOp:
+    def __init__(self, self_: Dict[str, Value], key: str, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            # should be Dict(str, t)
+            pass
+            
+        if not is_mlir_value(key):
+            key = torch_dialect.ConstantStrOp(key)
+        else:
+            key = get_op_result_or_value(key)
+            assert str(key.type) == '!torch.str', f'`key` should be a !torch.str but is {type(key).__module__}.{type(key).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(Aten__Getitem__DictStrOp, self).__init__(result_type, self_, key, loc=loc, ip=ip)
+        
+    
+class Aten_SetItemStrOp:
+    def __init__(self, l: Dict[str, Value], idx: str, v: Value, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(l):
+            assert is_mlir_value(l), f'`l` should be a Value but is {type(l).__module__}.{type(l).__name__}'
+        else:
+            l = get_op_result_or_value(l)
+            # should be Dict(str, t)
+            pass
+            
+        if not is_mlir_value(idx):
+            idx = torch_dialect.ConstantStrOp(idx)
+        else:
+            idx = get_op_result_or_value(idx)
+            assert str(idx.type) == '!torch.str', f'`idx` should be a !torch.str but is {type(idx).__module__}.{type(idx).__name__}'
+            
+        if not is_mlir_value(v):
+            assert is_mlir_value(v), f'`v` should be a Value but is {type(v).__module__}.{type(v).__name__}'
+        else:
+            v = get_op_result_or_value(v)
+            assert str(v.type).startswith("!torch.vtensor"), f'`v` should be a torch.vtensor but is {type(v).__module__}.{type(v).__name__}'
+            
+        super(Aten_SetItemStrOp, self).__init__(l, idx, v, loc=loc, ip=ip)
+        
+    
+class AtenKeysStrOp:
+    def __init__(self, self_: Dict[str, Value], *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            # should be Dict(str, t)
+            pass
+            
+        result_type = Type.parse("!torch.list<str>")
+        super(AtenKeysStrOp, self).__init__(result_type, self_, loc=loc, ip=ip)
+        
+    
+class AtenGetDefaultStrOp:
+    def __init__(self, self_: Dict[str, Value], key: str, default_value: Value, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            # should be Dict(str, t)
+            pass
+            
+        if not is_mlir_value(key):
+            key = torch_dialect.ConstantStrOp(key)
+        else:
+            key = get_op_result_or_value(key)
+            assert str(key.type) == '!torch.str', f'`key` should be a !torch.str but is {type(key).__module__}.{type(key).__name__}'
+            
+        if not is_mlir_value(default_value):
+            assert is_mlir_value(default_value), f'`default_value` should be a Value but is {type(default_value).__module__}.{type(default_value).__name__}'
+        else:
+            default_value = get_op_result_or_value(default_value)
+            assert str(default_value.type).startswith("!torch.vtensor"), f'`default_value` should be a torch.vtensor but is {type(default_value).__module__}.{type(default_value).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenGetDefaultStrOp, self).__init__(result_type, self_, key, default_value, loc=loc, ip=ip)
+        
+    
+class AtenDeleteDictStrOp:
+    def __init__(self, self_: Dict[str, Value], key: str, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            # should be Dict(str, t)
+            pass
+            
+        if not is_mlir_value(key):
+            key = torch_dialect.ConstantStrOp(key)
+        else:
+            key = get_op_result_or_value(key)
+            assert str(key.type) == '!torch.str', f'`key` should be a !torch.str but is {type(key).__module__}.{type(key).__name__}'
+            
+        super(AtenDeleteDictStrOp, self).__init__(self_, key, loc=loc, ip=ip)
         
     
 class AtenCatOp:
@@ -7061,14 +9349,14 @@ class AtenEqIntListOp:
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(a):
-            a = list(map(torch_dialect.ConstantIntOp, a))
+            a = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in a]
             a = torch_dialect.PrimListConstructOp(a)
         else:
             a = get_op_result_or_value(a)
             assert str(a.type) == '!torch.list<int>', f'`a` should be a !torch.list<int> but is {type(a).__module__}.{type(a).__name__}'
             
         if not is_mlir_value(b):
-            b = list(map(torch_dialect.ConstantIntOp, b))
+            b = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in b]
             b = torch_dialect.PrimListConstructOp(b)
         else:
             b = get_op_result_or_value(b)
@@ -7159,14 +9447,14 @@ class AtenNeIntListOp:
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(a):
-            a = list(map(torch_dialect.ConstantIntOp, a))
+            a = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in a]
             a = torch_dialect.PrimListConstructOp(a)
         else:
             a = get_op_result_or_value(a)
             assert str(a.type) == '!torch.list<int>', f'`a` should be a !torch.list<int> but is {type(a).__module__}.{type(a).__name__}'
             
         if not is_mlir_value(b):
-            b = list(map(torch_dialect.ConstantIntOp, b))
+            b = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in b]
             b = torch_dialect.PrimListConstructOp(b)
         else:
             b = get_op_result_or_value(b)
@@ -7180,7 +9468,7 @@ class AtenAnyBoolOp:
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
-            self_ = list(map(torch_dialect.ConstantBoolOp, self_))
+            self_ = [torch_dialect.ConstantBoolOp(a) if not is_mlir_value(a) else a for a in self_]
             self_ = torch_dialect.PrimListConstructOp(self_)
         else:
             self_ = get_op_result_or_value(self_)
@@ -7195,7 +9483,7 @@ class AtenSortIntOp:
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
-            self_ = list(map(torch_dialect.ConstantIntOp, self_))
+            self_ = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in self_]
             self_ = torch_dialect.PrimListConstructOp(self_)
         else:
             self_ = get_op_result_or_value(self_)
@@ -7283,7 +9571,7 @@ class AtenJoinOp:
             assert str(self_.type) == '!torch.str', f'`self_` should be a !torch.str but is {type(self_).__module__}.{type(self_).__name__}'
             
         if not is_mlir_value(values):
-            values = list(map(torch_dialect.ConstantStrOp, values))
+            values = [torch_dialect.ConstantStrOp(a) if not is_mlir_value(a) else a for a in values]
             values = torch_dialect.PrimListConstructOp(values)
         else:
             values = get_op_result_or_value(values)
@@ -7294,7 +9582,7 @@ class AtenJoinOp:
         
     
 class AtenFloatScalarOp:
-    def __init__(self, a: "Number", *, loc=None, ip=None):
+    def __init__(self, a: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(a):
@@ -7333,7 +9621,7 @@ class AtenIntFloatOp:
         
     
 class AtenIntScalarOp:
-    def __init__(self, a: "Number", *, loc=None, ip=None):
+    def __init__(self, a: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(a):
@@ -7548,7 +9836,7 @@ class AtenRemainderIntOp:
         
     
 class AtenRemainderScalarOp:
-    def __init__(self, self_: Value, other: "Number", *, loc=None, ip=None):
+    def __init__(self, self_: Value, other: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
@@ -8059,7 +10347,7 @@ class Aten_SetItemTOp:
         
     
 class AtenDivOp:
-    def __init__(self, a: "Number", b: "Number", *, loc=None, ip=None):
+    def __init__(self, a: Number, b: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(a):
@@ -8078,7 +10366,7 @@ class AtenDivOp:
         
     
 class AtenAddOp:
-    def __init__(self, a: "Number", b: "Number", *, loc=None, ip=None):
+    def __init__(self, a: Number, b: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(a):
@@ -8097,7 +10385,7 @@ class AtenAddOp:
         
     
 class AtenSubOp:
-    def __init__(self, a: "Number", b: "Number", *, loc=None, ip=None):
+    def __init__(self, a: Number, b: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(a):
@@ -8116,7 +10404,7 @@ class AtenSubOp:
         
     
 class AtenCeilScalarOp:
-    def __init__(self, a: "Number", *, loc=None, ip=None):
+    def __init__(self, a: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(a):
@@ -8167,6 +10455,25 @@ class AtenBoolIntOp:
         super(AtenBoolIntOp, self).__init__(a, loc=loc, ip=ip)
         
     
+class AtenEqDeviceOp:
+    def __init__(self, a: Device, b: Device, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(a):
+            a = torch_dialect.ConstantDeviceOp(a)
+        else:
+            a = get_op_result_or_value(a)
+            assert str(a.type) == '!torch.device', f'`a` should be a !torch.device but is {type(a).__module__}.{type(a).__name__}'
+            
+        if not is_mlir_value(b):
+            b = torch_dialect.ConstantDeviceOp(b)
+        else:
+            b = get_op_result_or_value(b)
+            assert str(b.type) == '!torch.device', f'`b` should be a !torch.device but is {type(b).__module__}.{type(b).__name__}'
+            
+        super(AtenEqDeviceOp, self).__init__(a, b, loc=loc, ip=ip)
+        
+    
 class AtenCeilFloatOp:
     def __init__(self, a: float, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
@@ -8210,17 +10517,6 @@ class AtenNarrowOp:
             
         result_type = Type.parse("!torch.vtensor")
         super(AtenNarrowOp, self).__init__(result_type, self_, dim, start, length, loc=loc, ip=ip)
-        
-    
-class AtenScalarImplicitOp:
-    def __init__(self, a: Value, *, loc=None, ip=None):
-        if not is_mlir_value(a):
-            assert is_mlir_value(a), f'`a` should be a Value but is {type(a).__module__}.{type(a).__name__}'
-        else:
-            a = get_op_result_or_value(a)
-            assert str(a.type).startswith("!torch.vtensor"), f'`a` should be a torch.vtensor but is {type(a).__module__}.{type(a).__name__}'
-            
-        super(AtenScalarImplicitOp, self).__init__(a, loc=loc, ip=ip)
         
     
 class Aten_SoftmaxBackwardDataOp:
@@ -8348,7 +10644,7 @@ class AtenNativeLayerNormBackwardOp:
             assert str(input.type).startswith("!torch.vtensor"), f'`input` should be a torch.vtensor but is {type(input).__module__}.{type(input).__name__}'
             
         if not is_mlir_value(normalized_shape):
-            normalized_shape = list(map(torch_dialect.ConstantIntOp, normalized_shape))
+            normalized_shape = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in normalized_shape]
             normalized_shape = torch_dialect.PrimListConstructOp(normalized_shape)
         else:
             normalized_shape = get_op_result_or_value(normalized_shape)
@@ -8385,7 +10681,7 @@ class AtenNativeLayerNormBackwardOp:
             assert str(bias.type).startswith("!torch.vtensor"), f'`bias` should be a torch.vtensor but is {type(bias).__module__}.{type(bias).__name__}'
             
         if not is_mlir_value(output_mask):
-            output_mask = list(map(torch_dialect.ConstantBoolOp, output_mask))
+            output_mask = [torch_dialect.ConstantBoolOp(a) if not is_mlir_value(a) else a for a in output_mask]
             output_mask = torch_dialect.PrimListConstructOp(output_mask)
         else:
             output_mask = get_op_result_or_value(output_mask)
@@ -8510,7 +10806,7 @@ class AtenNativeBatchNormBackwardOp:
             assert str(eps.type) == '!torch.float', f'`eps` should be a !torch.float but is {type(eps).__module__}.{type(eps).__name__}'
             
         if not is_mlir_value(output_mask):
-            output_mask = list(map(torch_dialect.ConstantBoolOp, output_mask))
+            output_mask = [torch_dialect.ConstantBoolOp(a) if not is_mlir_value(a) else a for a in output_mask]
             output_mask = torch_dialect.PrimListConstructOp(output_mask)
         else:
             output_mask = get_op_result_or_value(output_mask)
@@ -8549,6 +10845,38 @@ class AtenNativeDropoutBackwardOp:
         super(AtenNativeDropoutBackwardOp, self).__init__(result_type, grad_output, mask, scale, loc=loc, ip=ip)
         
     
+class AtenLeakyReluBackwardOp:
+    def __init__(self, grad_output: Value, self_: Value, negative_slope: Number, self_is_result: bool, *, loc=None, ip=None):
+        from torch_mlir.dialects import torch as torch_dialect
+        
+        if not is_mlir_value(grad_output):
+            assert is_mlir_value(grad_output), f'`grad_output` should be a Value but is {type(grad_output).__module__}.{type(grad_output).__name__}'
+        else:
+            grad_output = get_op_result_or_value(grad_output)
+            assert str(grad_output.type).startswith("!torch.vtensor"), f'`grad_output` should be a torch.vtensor but is {type(grad_output).__module__}.{type(grad_output).__name__}'
+            
+        if not is_mlir_value(self_):
+            assert is_mlir_value(self_), f'`self_` should be a Value but is {type(self_).__module__}.{type(self_).__name__}'
+        else:
+            self_ = get_op_result_or_value(self_)
+            assert str(self_.type).startswith("!torch.vtensor"), f'`self_` should be a torch.vtensor but is {type(self_).__module__}.{type(self_).__name__}'
+            
+        if not is_mlir_value(negative_slope):
+            negative_slope = torch_dialect.ConstantNumberOp(negative_slope)
+        else:
+            negative_slope = get_op_result_or_value(negative_slope)
+            assert str(negative_slope.type) in {'!torch.float', '!torch.int'}, f'`negative_slope` should be a !torch.number but is {type(negative_slope).__module__}.{type(negative_slope).__name__}'
+            
+        if not is_mlir_value(self_is_result):
+            self_is_result = torch_dialect.ConstantBoolOp(self_is_result)
+        else:
+            self_is_result = get_op_result_or_value(self_is_result)
+            assert str(self_is_result.type) == '!torch.bool', f'`self_is_result` should be a !torch.bool but is {type(self_is_result).__module__}.{type(self_is_result).__name__}'
+            
+        result_type = Type.parse("!torch.vtensor")
+        super(AtenLeakyReluBackwardOp, self).__init__(result_type, grad_output, self_, negative_slope, self_is_result, loc=loc, ip=ip)
+        
+    
 class PrimLayoutOp:
     def __init__(self, a: Value, *, loc=None, ip=None):
         if not is_mlir_value(a):
@@ -8579,6 +10907,17 @@ class PrimTupleIndexOp:
         super(PrimTupleIndexOp, self).__init__(tup, i, loc=loc, ip=ip)
         
     
+class PrimDeviceOp:
+    def __init__(self, a: Value, *, loc=None, ip=None):
+        if not is_mlir_value(a):
+            assert is_mlir_value(a), f'`a` should be a Value but is {type(a).__module__}.{type(a).__name__}'
+        else:
+            a = get_op_result_or_value(a)
+            assert str(a.type).startswith("!torch.vtensor"), f'`a` should be a torch.vtensor but is {type(a).__module__}.{type(a).__name__}'
+            
+        super(PrimDeviceOp, self).__init__(a, loc=loc, ip=ip)
+        
+    
 class PrimDtypeOp:
     def __init__(self, a: Value, *, loc=None, ip=None):
         if not is_mlir_value(a):
@@ -8591,7 +10930,7 @@ class PrimDtypeOp:
         
     
 class PrimNumToTensorScalarOp:
-    def __init__(self, a: "Number", *, loc=None, ip=None):
+    def __init__(self, a: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(a):
@@ -8609,7 +10948,7 @@ class PrimMinSelfIntOp:
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
-            self_ = list(map(torch_dialect.ConstantIntOp, self_))
+            self_ = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in self_]
             self_ = torch_dialect.PrimListConstructOp(self_)
         else:
             self_ = get_op_result_or_value(self_)
@@ -8642,7 +10981,7 @@ class PrimMaxSelfIntOp:
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(self_):
-            self_ = list(map(torch_dialect.ConstantIntOp, self_))
+            self_ = [torch_dialect.ConstantIntOp(a) if not is_mlir_value(a) else a for a in self_]
             self_ = torch_dialect.PrimListConstructOp(self_)
         else:
             self_ = get_op_result_or_value(self_)
@@ -8697,20 +11036,8 @@ class PrimUninitializedOp:
         super(PrimUninitializedOp, self).__init__(loc=loc, ip=ip)
         
     
-class PrimUncheckedCastOp:
-    def __init__(self, x: Value, *, loc=None, ip=None):
-        if not is_mlir_value(x):
-            assert is_mlir_value(x), f'`x` should be a Value but is {type(x).__module__}.{type(x).__name__}'
-        else:
-            x = get_op_result_or_value(x)
-            assert str(x.type).startswith("!torch.vtensor"), f'`x` should be a torch.vtensor but is {type(x).__module__}.{type(x).__name__}'
-            
-        result_type = Type.parse("!torch.vtensor")
-        super(PrimUncheckedCastOp, self).__init__(result_type, x, loc=loc, ip=ip)
-        
-    
 class PrimAbsScalarOp:
-    def __init__(self, a: "Number", *, loc=None, ip=None):
+    def __init__(self, a: Number, *, loc=None, ip=None):
         from torch_mlir.dialects import torch as torch_dialect
         
         if not is_mlir_value(a):

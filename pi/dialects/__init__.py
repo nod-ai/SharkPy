@@ -6,10 +6,10 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from importlib.abc import MetaPathFinder
 from importlib.machinery import SourceFileLoader, ModuleSpec
-from importlib.util import find_spec, spec_from_loader
+from importlib.util import find_spec, spec_from_loader, decode_source
 from pathlib import Path
-from typing import Generator, Callable, Dict, List
-
+from types import ModuleType
+from typing import Generator, Callable, Dict, List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,12 @@ class ImportOverload:
                 self.origin.name == "__init__.py"
             ), f"default search path for {self.name} isn't a package: {self.origin}"
             object.__setattr__(self, "submodule_search_locations", [self.origin.parent])
+
+
+@dataclass(order=True, frozen=True)
+class RewriteOverload:
+    name: str
+    replacement_rules: dict[str, str]
 
 
 _base_overloads = [
@@ -50,14 +56,38 @@ _base_overloads = [
         Path(__file__).parent / "_torch_ops_ext.py",
         False,
     ),
-    ImportOverload(
-        "pyccolo.trace_events",
-        Path(__file__).parent.parent / "compiler" / "tracing" / "trace_events.py",
-        False,
-    ),
 ]
 
 BASE_OVERLOADS: Dict[str, ImportOverload] = {i.name: i for i in _base_overloads}
+
+
+class RewriterLoader(SourceFileLoader):
+    # TraceLoader(tracers_to_use, spec.loader.name, spec.loader.path)
+    def __init__(self, rewrite_rules: dict[str, str], name, path) -> None:
+        super().__init__(name, path)
+        self.rewrite_rules = rewrite_rules
+
+    def get_data(self, path) -> bytes:
+        source = self.get_rewritten_source(path)
+        return bytes(source, encoding="utf-8")
+
+    def get_code(self, fullname):
+        source_path = self.get_filename(fullname)
+        source_bytes = self.get_data(source_path)
+        return self.source_to_code(source_bytes, source_path)
+
+    def get_rewritten_source(self, source_path) -> str:
+        source_bytes = super().get_data(source_path)
+        source = decode_source(source_bytes)
+        for k, v in self.rewrite_rules.items():
+            source = source.replace(k, v)
+        return source
+
+    def source_to_code(self, data: bytes | str, path: str = ...):
+        return super(RewriterLoader, self).source_to_code(data, path)
+
+    def exec_module(self, module: ModuleType) -> None:
+        super().exec_module(module)
 
 
 # this is based on the birdseye finder (which uses import hooks based on MacroPy's):
@@ -132,19 +162,26 @@ class Overloader(MetaPathFinder):
         logger.debug("patching spec for %s", fullname)
 
         overload = self.overloads[fullname]
-        new_path = str(overload.origin)
-        source_file_loader = SourceFileLoader(fullname, new_path)
-        spec = ModuleSpec(
-            name=fullname,
-            loader=source_file_loader,
-            origin=new_path,
-            is_package=overload.is_package,
-        )
-        if overload.is_package:
-            spec.submodule_search_locations = [
-                str(p) for p in overload.submodule_search_locations
-            ]
-        spec.has_location = True
+        if isinstance(overload, ImportOverload):
+            new_path = str(overload.origin)
+            source_file_loader = SourceFileLoader(fullname, new_path)
+            spec = ModuleSpec(
+                name=fullname,
+                loader=source_file_loader,
+                origin=new_path,
+                is_package=overload.is_package,
+            )
+            if overload.is_package:
+                spec.submodule_search_locations = [
+                    str(p) for p in overload.submodule_search_locations
+                ]
+            spec.has_location = True
+        elif isinstance(overload, RewriteOverload):
+            assert spec is not None
+            spec.loader = RewriterLoader(
+                overload.replacement_rules, spec.loader.name, spec.loader.path
+            )
+
         return spec
 
 
@@ -174,6 +211,8 @@ def patch_meta_path(overloads=None) -> Generator[None, None, None]:
     try:
         cleanup_callback = patch_meta_path_non_context(overloads)
         yield
+    except:
+        raise
     finally:
         if cleanup_callback is not None:
             cleanup_callback()

@@ -4,15 +4,12 @@ on:
   pull_request:
     branches:
       - main
-      - nn_module
   push:
     branches:
       - main
-      - nn_module
   workflow_dispatch:
     branches:
       - main
-      - nn_module
 
 jobs:
 
@@ -30,11 +27,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-#      - name: Install linux system packages
-#        run: |
-#          sudo apt-get update
-#          sudo apt-get -y install ninja-build cmake clang
-
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -42,12 +34,14 @@ jobs:
 
       - name: Install
         run: |
-          pip install . \
-            --pre torch-mlir torchvision \
-            -f https://llvm.github.io/torch-mlir/package-index/ \
-            --extra-index-url https://download.pytorch.org/whl/nightly/cpu \
-            -v
+          pip install wheel cmake ninja
+          pip install -r torch_mlir.requirements.txt
+          pip install . -v --no-build-isolation
 
-      - name: Test vs. torch-mlir
+      - name: Test vs. torch-mlir ABI
+        run: |
+          python tests/unit/torch_mlir_ext_compatibility.py
+
+      - name: Test vs. torch-mlir test-suite
         run: |
           PYTHONPATH=tests/torch_mlir python tests/torch_mlir/main.py

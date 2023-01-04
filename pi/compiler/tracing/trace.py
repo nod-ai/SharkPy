@@ -418,9 +418,7 @@ class MLIRTracer(pyc.BaseTracer):
         **kwargs,
     ):
         for loc_name, loc in frame.f_locals.items():
-            if inspect.isfunction(loc) and getattr(
-                loc, PI_EXPORT_ATTR_NAME, False
-            ):
+            if inspect.isfunction(loc) and getattr(loc, PI_EXPORT_ATTR_NAME, False):
                 print(loc)
         self.exit_mlir_block_scope(scope_name="module")
 

@@ -17,26 +17,15 @@ Early days of a Python frontend for MLIR.
 Just 
 
 ```shell
-pip install . \
-  --pre torch-mlir torchvision \
-  -f https://llvm.github.io/torch-mlir/package-index/ \
-  --extra-index-url https://download.pytorch.org/whl/nightly/cpu
+pip install - requirements.txt 
+pip install . --no-build-isolation
 ```
 
 and you're good to go.
 
-Alternatively, you can install the [latest released wheel](https://github.com/nod-ai/PI/releases/latest):
-
-```shell
-pip install https://github.com/nod-ai/PI/releases/latest/download/PI-$CURRENT_VERSION-py3-none-any.whl \
-  --pre torch-mlir torchvision \
-  -f https://llvm.github.io/torch-mlir/package-index/ \
-  --extra-index-url https://download.pytorch.org/whl/nightly/cpu
-```
-
 # Minimal example
 
-[simple_kernels.py](./tests/simple_kernels.py) (in [tests](./tests)) looks like this
+[simple_kernels.py](./tests/unit/simple_kernels.py) (in [tests](./tests/unit)) looks like this
 
 ```python
 from pi.dialects import memref, linalg
@@ -155,7 +144,7 @@ module {
 
 # Moderately interesting example
 
-[simple_kernels.py](./tests/simple_kernels.py) has a [SAXPY](https://www.ibm.com/docs/en/essl/6.2?topic=vss-saxpy-daxpy-caxpy-zaxpy-multiply-vector-by-scalar-add-vector-store-in-vector) implementation:
+[simple_kernels.py](./tests/unit/simple_kernels.py) has a [SAXPY](https://www.ibm.com/docs/en/essl/6.2?topic=vss-saxpy-daxpy-caxpy-zaxpy-multiply-vector-by-scalar-add-vector-store-in-vector) implementation:
 
 ```python
 def saxpy(a: float, b: float):
@@ -272,14 +261,13 @@ module {
 }
 ```
 
-This is very rough right now; to get a rough idea of the current status check the [latest tests](https://github.com/nod-ai/PI/actions).
+This is very rough right now; to get a rough idea of the current status check the [latest tests](https://github.com/nod-ai/PI/actions?query=workflow%3ATest++).
+
+Currently, we're passing 561 out of 770 of Torch-MLIR's test-suite (`torch-mlir==20230104.708`).
 
 # Build Wheel
 
 ```shell
-pip wheel . \
-  --wheel-dir wheelhouse \
-  --pre torch-mlir torchvision \
-  -f https://llvm.github.io/torch-mlir/package-index/ \
-  --extra-index-url https://download.pytorch.org/whl/nightly/cpu
+pip install - requirements.txt 
+pip wheel . --no-build-isolation --wheel-dir wheelhouse
 ```

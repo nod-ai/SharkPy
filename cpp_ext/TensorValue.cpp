@@ -42,11 +42,47 @@ Torch_Tensor Torch_Tensor::createFromCapsule_(const py::capsule &capsule) {
   return {ownerRef, value};
 }
 
+PYBIND11_NOINLINE bool try_load_foreign_module_local(py::handle src) {
+  constexpr auto *local_key = PYBIND11_MODULE_LOCAL_ID;
+  const auto pytype = py::type::handle_of(src);
+  if (!hasattr(pytype, local_key)) {
+    std::cerr << "wrong local key\n";
+    return false;
+  }
+
+  py::detail::type_info *foreign_typeinfo = py::reinterpret_borrow<py::capsule>(getattr(pytype, local_key));
+  assert(foreign_typeinfo != nullptr);
+  if (foreign_typeinfo->module_local_load == &pybind11::detail::type_caster_generic::local_load) {
+    std::cerr << "wrong module loader\n";
+    return false;
+  }
+
+  //  auto caster = pybind11::detail::type_caster_generic(foreign_typeinfo);
+  //  if (caster.load(src, false)) {
+  //    return caster.value;
+  //  } else {
+  //    std::cerr << "caster.load failed";
+  //    return false;
+  //  }
+
+  if (auto *result = foreign_typeinfo->module_local_load(src.ptr(), foreign_typeinfo)) {
+    return true;
+  }
+  std::cerr << "load failed\n";
+  return false;
+}
+
 void bindValues(py::module &m) {
-  py::object value_ =
-      (py::object) py::module_::import("torch_mlir.ir").attr("Value");
   py::object op_result_ =
       (py::object) py::module_::import("torch_mlir.ir").attr("OpResult");
+  py::object value_ =
+      (py::object) py::module_::import("torch_mlir.ir").attr("Value");
+
+  m.def("_load_foreign", [](const py::object &mlirvalue) {
+    py::handle value_handle = mlirvalue;
+    auto loaded = try_load_foreign_module_local(value_handle);
+    return loaded;
+  });
 
   py::class_<Torch_Tensor>(m, "_Torch_Tensor", value_)
       .def(py::init<>([](const py::capsule &capsule) {

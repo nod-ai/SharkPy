@@ -77,7 +77,7 @@ def run_pipeline_with_repro_report(
         sys.stderr = original_stderr
 
 
-def lower_pi_to_linalg(module):
+def lower_pi_to_linalg(module, enable_ir_printing=False):
     run_pipeline_with_repro_report(
         module,
         "builtin.module("
@@ -94,7 +94,7 @@ def lower_pi_to_linalg(module):
         )
         + ")",
         "Lowering Torch MLIR -> Linalg",
-        enable_ir_printing=False,
+        enable_ir_printing,
     )
     return module
 

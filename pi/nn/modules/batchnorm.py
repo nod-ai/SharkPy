@@ -365,10 +365,10 @@ class SyncBatchNorm(_BatchNorm):
 
         # Don't sync batchnorm stats in inference mode (model.eval()).
         need_sync = (
-                bn_training
-                and self.training
-                and pi.distributed.is_available()
-                and pi.distributed.is_initialized()
+            bn_training
+            and self.training
+            and pi.distributed.is_available()
+            and pi.distributed.is_initialized()
         )
         if need_sync:
             # currently only GPU input is supported
