@@ -31,7 +31,7 @@ with dl_open_guard():
 
 assert (
     len(torch_mlir.dialects.torch.AtenConv2dOp.__bases__) > 1
-), "failed to import torch dialect extensions"
+), "failed to import torch dialect extensions; you probably tried to import torch_mlir before pi"
 
 if __name__ == "pi":
     # prevent double type registration when we've patched torch -> pi

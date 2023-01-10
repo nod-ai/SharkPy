@@ -9,9 +9,9 @@
 #ifndef MLIR_BINDINGS_PYTHON_IRMODULES_H
 #define MLIR_BINDINGS_PYTHON_IRMODULES_H
 
+#include <iostream>
 #include <utility>
 #include <vector>
-#include <iostream>
 
 #include <mlir-c/Bindings/Python/Interop.h>
 #include <pybind11/pybind11.h>
@@ -85,6 +85,7 @@ public:
     assert(this->contextRef && "context object constructed with null context ref");
   }
   PyMlirContextRef contextRef;
+  PyMlirContextRef &getContext() { return contextRef; }
 };
 
 class PyOperation : public BaseContextObject {
@@ -109,34 +110,32 @@ public:
   PyValue(PyOperationRef parentOperation, MlirValue value)
       : parentOperation(std::move(parentOperation)), value(value) {}
   explicit operator MlirValue() const { return value; }
+  MlirValue get() { return value; }
+
+  PyOperationRef parentOperation;
 
 private:
-  PyOperationRef parentOperation;
   MlirValue value;
 };
 
 struct PyType : public BaseContextObject {
   PyType(PyMlirContextRef contextRef, MlirType type)
       : BaseContextObject(std::move(contextRef)), type(type) {}
-  explicit operator MlirType() const { return type; }
+  operator MlirType() const { return type; }
   [[nodiscard]] MlirType get() const { return type; }
-
 
   MlirType type;
 };
 
-
-
-template <typename DerivedTy, typename BaseTy = PyType>
+template<typename DerivedTy, typename BaseTy = PyType>
 struct PyConcreteType : public BaseTy {
-//  using ClassTy = pybind11::class_<DerivedTy, BaseTy>;
+  //  using ClassTy = pybind11::class_<DerivedTy, BaseTy>;
 
   PyConcreteType() = default;
   PyConcreteType(PyMlirContextRef contextRef, MlirType t)
       : BaseTy(std::move(contextRef), t) {}
 
-  static DerivedTy createFromCapsule_(py::capsule& capsule) {
-    MlirType rawType = {capsule.get_pointer()};
+  static DerivedTy createFromMlirType_(MlirType rawType) {
     if (mlirTypeIsNull(rawType))
       throw py::error_already_set();
 
@@ -149,9 +148,32 @@ struct PyConcreteType : public BaseTy {
     return {std::move(ctxRef), rawType};
   }
 
+  static DerivedTy createFromCapsule_(const py::capsule &capsule) {
+    MlirType rawType = {capsule.get_pointer()};
+    return createFromMlirType_(rawType);
+  }
 };
 
-void populateTorchTypes(py::module &m);
+struct PyPrintAccumulator {
+  pybind11::list parts;
+
+  void *getUserData() { return this; }
+
+  MlirStringCallback getCallback() {
+    return [](MlirStringRef part, void *userData) {
+      PyPrintAccumulator *printAccum =
+          static_cast<PyPrintAccumulator *>(userData);
+      pybind11::str pyPart(part.data,
+                           part.length);// Decodes as UTF-8 by default.
+      printAccum->parts.append(std::move(pyPart));
+    };
+  }
+
+  pybind11::str join() {
+    pybind11::str delim("", 0);
+    return delim.attr("join")(parts);
+  }
+};
 
 }// namespace mlir::python
 

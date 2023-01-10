@@ -138,14 +138,14 @@ def run_pi_tests(torch_mlir_linalg_module_strs):
         except NotFoundLookupError as e:
             print(traceback.format_exc())
             print(f"{e}")
-            print(f"FAIL dispatcher error")
+            print(f"FAIL dispatcher NotFoundLookupError")
             NotFoundLookupErrorFAIL += 1
             print()
             continue
         except AmbiguousLookupError as e:
             print(traceback.format_exc())
             print(f"{e}")
-            print(f"FAIL dispatcher error")
+            print(f"FAIL dispatcher AmbiguousLookupError")
             AmbiguousLookupErrorFAIL += 1
             print("\ntorch_mlir module\n")
             print(torch_dialect_module)

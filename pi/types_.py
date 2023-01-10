@@ -14,6 +14,8 @@ from torch_mlir.ir import (
     Value as MLIRValue,
 )
 
+from pi._mlir import is_a_Torch_ValueTensorType
+
 # !torch.vtensor<[1,2,3],f32>
 reg = re.compile(r"!torch.vtensor<\[(.*)\],(.*)>")
 
@@ -38,8 +40,7 @@ def get_type(t: Union[MLIRType, MLIRValue]):
 def is_a_torch_tensor(t):
     try:
         t = get_op_result_or_value(t)
-        type_str = str(t.type)
-        return "torch.tensor" in type_str or "torch.vtensor" in type_str
+        return is_a_Torch_ValueTensorType(t.type)
     except:
         return False
 
@@ -119,13 +120,43 @@ class dtype(Enum):
             case _:
                 raise NotImplementedError("Something's wrong with the internet")
 
+    @staticmethod
+    def from_np_type(self):
+        match self:
+            case np.half:
+                return dtype.float16
+            case np.bool_:
+                return dtype.bool
+            case np.singlecomplex:
+                return dtype.complex32
+            case np.complex_:
+                return dtype.complex64
+            case np.float32:
+                return dtype.float32
+            case np.float64:
+                return dtype.float64
+            case np.int8:
+                return dtype.int8
+            case np.int16:
+                return dtype.int16
+            case np.int32:
+                return dtype.int32
+            case np.int64:
+                return dtype.int64
+            case np.uint8:
+                return dtype.uint8
+            case _:
+                raise NotImplementedError(f"unrecognized dtype: {self}")
+
     def to_np_type(self):
         match self:
             case dtype.bfloat16 | dtype.float16:
                 return np.half
             case dtype.bool:
                 return np.bool_
-            case dtype.complex32 | dtype.complex64:
+            case dtype.complex32:
+                return np.singlecomplex
+            case dtype.complex64:
                 return np.complex_
             case dtype.float32:
                 return np.float32
@@ -142,7 +173,7 @@ class dtype(Enum):
             case dtype.uint8:
                 return np.uint8
             case _:
-                raise NotImplementedError("Something's wrong with the internet")
+                raise NotImplementedError(f"unrecognized dtype: {self}")
 
     @staticmethod
     def from_mlir_type(t: str):
@@ -174,6 +205,12 @@ class dtype(Enum):
             case _:
                 raise NotImplementedError(f"Something's wrong with the internet {t}")
 
+    # IntegerType.get_signless(32) -> i32
+    # IntegerType.get_signed(32) -> si32
+    # IntegerType.get_unsigned(32) -> ui32
+    def is_signless(self):
+        return self in {dtype.bool}
+
 
 bfloat16 = dtype.bfloat16
 bool = dtype.bool
@@ -195,6 +232,7 @@ Size = size = Union[List[int], Tuple[int, ...]]
 Number = Union[builtins.int, builtins.float, builtins.bool]
 Generator = Any
 device = Device = NewType("Device", str)
+
 
 class BroadcastingListCls(object):
     def __getitem__(self, types):

@@ -1,5 +1,6 @@
 from __future__ import annotations
 import builtins
+import functools
 import warnings
 from numbers import Number
 from typing import (
@@ -28,10 +29,9 @@ from .types_ import (
     Device,
     memory_format,
     contiguous_format,
-    is_a_torch_tensor
 )
 from .dispatcher import dispatch
-from pi._mlir import _Torch_Tensor
+from pi._mlir import _Torch_ValueTensor, is_a_Torch_ValueTensorType
 
 
 class ComplexReturnType:
@@ -39,42 +39,25 @@ class ComplexReturnType:
         self.name = name
 
 
-class Tensor(_Torch_Tensor):
-    requires_grad: bool
+class Tensor(_Torch_ValueTensor):
     shape: Size
-    data: Tensor
-    names: List[str]
     device: device
     dtype: pi_dtype
     layout: layout
-    real: Tensor
-    imag: Tensor
-    T: Tensor
-    H: Tensor
-    mT: Tensor
-    mH: Tensor
     ndim: int
     output_nr: int
-    _version: int
-    _base: Optional[Tensor]
-    _cdata: int
-    grad_fn: Any
-    _grad_fn: Any
-    _grad: Optional[Tensor]
-    grad: Optional[Tensor]
-    _backward_hooks: Optional[Dict[int, Callable[[Tensor], Optional[Tensor]]]]
-
-    @classmethod
-    def _is_pi_tensor(self):
-        return True
-
-    @property
-    def __class__(self):
-        return MLIRValue
 
     def __init__(self, tensor: MLIRValue):
         tensor = get_op_result_or_value(tensor)
-        super(Tensor, self).__init__(tensor._CAPIPtr)
+        super(Tensor, self).__init__(tensor)
+
+    @property
+    def shape(self):
+        return super(Tensor, self).type.sizes
+
+    @property
+    def dtype(self):
+        return super(Tensor, self).type.dtype
 
     def __abs__(self: Tensor) -> Tensor:
         return pi.abs(self)
@@ -126,10 +109,11 @@ class Tensor(_Torch_Tensor):
             if isinstance(ind, int):
                 t = pi.slice(t, ind)
             elif isinstance(ind, slice):
-                t = pi.slice(t, dim=i, start=ind.start, end=ind.stop, step=ind.step or 1)
+                t = pi.slice(
+                    t, dim=i, start=ind.start, end=ind.stop, step=ind.step or 1
+                )
 
         return t
-
 
     def __gt__(self: Tensor, other: Any) -> Tensor:
         return pi.gt(self, other)
@@ -338,9 +322,6 @@ class Tensor(_Torch_Tensor):
     @dispatch
     def __xor__(self: Tensor, other: Any) -> Tensor:
         raise NotImplementedError("__xor__")
-
-    def __repr__(self):
-        return "Tensor" + str(self)
 
     def _addmm_activation(
         self: Tensor,
@@ -3699,68 +3680,61 @@ class Tensor(_Torch_Tensor):
         return pi.zero_(self)
 
 
-def from_numpy(arr: np.ndarray):
-    from pi import DEBUG
+def from_numpy(arr: np.ndarray, dtype: pi_dtype = None):
+    shape = arr.shape
+    if dtype is None:
+        dtype = pi_dtype.from_np_type(arr.dtype)
+    if dtype == pi_dtype.bool:
+        arr = np.packbits(arr, axis=None, bitorder="little")
+    attr = DenseElementsAttr.get(
+        arr, signless=dtype.is_signless(), type=dtype.to_mlir_type(), shape=shape
+    )
 
-    if DEBUG:
-        arr = np.ones_like(arr, dtype=np.float32)
-    attr = DenseElementsAttr.get(arr)
     vt = Tensor(torch_dialect.ValueTensorLiteralOp(attr))
     return vt
 
 
-def empty(shape: Tuple[int, ...], dtype: "pi.dtype" = None, **kwargs) -> Tensor:
-    if np.prod(shape) == 0:
-        return Tensor(None)
-    elif dtype is not None:
-        dtype = dtype.to_np_type()
-    return from_numpy(np.empty(shape, dtype))
+def _np_wrapper(*size: Tuple[int, ...], **kwargs):
+    factory = kwargs.get("factory", None)
+    assert factory is not None
+    if size == ((),) or len(size) == 0:
+        return factory()
+
+    if isinstance(size[0], tuple):
+        assert len(size) == 1, f"malformed size tuple {size}"
+        size = size[0]
+
+    dtype = kwargs.get("dtype", None)
+    # this is hella stupid
+    try:
+        if dtype is not None:
+            res = factory(size, dtype=dtype.to_np_type())
+        else:
+            res = factory(size)
+    except TypeError as e:
+        assert str(e) == "'tuple' object cannot be interpreted as an integer", str(e)
+        if dtype is not None:
+            res = factory(*size, dtype=dtype.to_np_type())
+        else:
+            res = factory(*size)
+
+    return from_numpy(res, dtype=dtype)
+
+
+empty = functools.partial(_np_wrapper, factory=np.empty)
+ones = functools.partial(_np_wrapper, factory=np.ones)
+zeros = functools.partial(_np_wrapper, factory=np.zeros)
+rand = functools.partial(_np_wrapper, factory=np.random.rand)
+randn = functools.partial(_np_wrapper, factory=np.random.randn)
+tensor = functools.partial(_np_wrapper, factory=np.array)
 
 
 def randint(low: int, high: int, size: Tuple[int, ...]) -> Tensor:
     return from_numpy(np.random.randint(low, high, size))
 
 
-def randn(*size: Tuple[int, ...]) -> Tensor:
-    if size == ((),):
-        return from_numpy(np.random.randn())
-    return from_numpy(np.random.randn(*size))
-
-
 def uniform(low: float, high: float, size: Tuple[int, ...]) -> Tensor:
     return from_numpy(np.random.uniform(low, high, size))
-
-
-def rand(*size: Tuple[int, ...], **kwargs) -> Tensor:
-    if size == ((),):
-        return from_numpy(np.random.rand())
-    if isinstance(size[0], tuple):
-        assert len(size) == 1, f"malformed size tuple {size}"
-        size = size[0]
-    return from_numpy(np.random.rand(*size))
-
-
-def ones(*size: Tuple[int, ...], **kwargs) -> Tensor:
-    dtype = kwargs.get("dtype", None)
-    if dtype is not None:
-        dtype = dtype.to_np_type()
-    if isinstance(size[0], tuple):
-        assert len(size) == 1, f"malformed size tuple {size}"
-        size = size[0]
-    return from_numpy(np.ones(size, dtype=dtype))
-
-
-def zeros(*size: Tuple[int, ...], **kwargs) -> Tensor:
-    dtype = kwargs.get("dtype", None)
-    if dtype is not None:
-        dtype = dtype.to_np_type()
-    return from_numpy(np.zeros(size, dtype))
-
-
-def tensor(data: Any, dtype: Optional["pi.dtype"] = None) -> Tensor:
-    if dtype is not None:
-        dtype = dtype.to_np_type()
-    return from_numpy(np.array(data, dtype=dtype))
 
 
 def LongTensor(data: Any) -> Tensor:
@@ -3773,12 +3747,12 @@ def clone(x: Tensor, **kwargs):
 
 
 def torch_cast(x: Tensor, dtype: pi_dtype):
-    assert is_a_torch_tensor(x), f"x should be a Tensor but is {type(x)}"
+    assert is_a_Torch_ValueTensorType(x.type), f"x should be a Tensor but is {type(x)}"
     return Tensor(torch_dialect.AtenToDtypeOp(x, dtype.value, False, False, None))
 
 
 def ScalarImplicit(x: Tensor):
-    assert is_a_torch_tensor(x), f"x should be a Tensor but is {type(x)}"
+    assert is_a_Torch_ValueTensorType(x.type), f"x should be a Tensor but is {type(x)}"
     return Tensor(torch_dialect.AtenScalarImplicitOp(x))
 
 

@@ -6,6 +6,7 @@
 // Also available under a BSD-style license. See LICENSE.
 //
 //===----------------------------------------------------------------------===//
+#pragma once
 
 #include "IRModule.h"
 #include "TorchTypesCAPI.h"
@@ -17,35 +18,51 @@
 using namespace mlir;
 using namespace mlir::python;
 
-struct Torch_IntType : public PyConcreteType<Torch_IntType> {
-  Torch_IntType(PyMlirContextRef contextRef, MlirType t)
-      : PyConcreteType<Torch_IntType>(std::move(contextRef), t) {}
-};
+// Note: TorchScript does not consider !torch.bool to be a Scalar.
+#define TORCH_MLIR_FORALL_NUMBER_TYPES(_) \
+  _(Float)                                \
+  _(Int)                                  \
+  _(Number)                               \
+  _(QInt8)                                \
+  _(QUInt8)
 
-struct Torch_BoolType : public PyConcreteType<Torch_BoolType> {
-  Torch_BoolType(PyMlirContextRef contextRef, MlirType t)
-      : PyConcreteType<Torch_BoolType>(std::move(contextRef), t) {}
-};
+#define TORCH_MLIR_FORALL_TENSOR_TYPES(_) \
+  _(NonValueTensor)                       \
+  _(ValueTensor)
 
-struct Torch_StringType : public PyConcreteType<Torch_StringType> {
-  Torch_StringType(PyMlirContextRef contextRef, MlirType t)
-      : PyConcreteType<Torch_StringType>(std::move(contextRef), t) {}
-};
+#define TORCH_MLIR_FORALL_CONTAINER_TYPES(_) \
+  _(Dict)                                    \
+  _(List)                                    \
+  _(Tuple)
 
-struct Torch_FloatType : public PyConcreteType<Torch_FloatType> {
-  Torch_FloatType(PyMlirContextRef contextRef, MlirType t)
-      : PyConcreteType<Torch_FloatType>(std::move(contextRef), t) {}
-};
+#define TORCH_MLIR_FORALL_OTHER_TYPES(_) \
+  _(Any)                                 \
+  _(Bool)                                \
+  _(Device)                              \
+  _(Generator)                           \
+  _(LinearParams)                        \
+  _(None)                                \
+  _(String)
+//  _(Optional)                            \
+//  _(NnModule)                            \
+//  _(Union)
 
-struct Torch_ValueTensorType : public PyConcreteType<Torch_ValueTensorType> {
-  Torch_ValueTensorType(PyMlirContextRef contextRef, MlirType t)
-      : PyConcreteType<Torch_ValueTensorType>(std::move(contextRef), t) {}
-};
+#define DEFINE_STRUCT(TTT)                                                                                                      \
+  struct Torch_##TTT##Type : public PyConcreteType<Torch_##TTT##Type> {                                                         \
+    Torch_##TTT##Type(PyMlirContextRef contextRef, MlirType t) : PyConcreteType<Torch_##TTT##Type>(std::move(contextRef), t) {} \
+  };
+TORCH_MLIR_FORALL_NUMBER_TYPES(DEFINE_STRUCT)
+TORCH_MLIR_FORALL_CONTAINER_TYPES(DEFINE_STRUCT)
+TORCH_MLIR_FORALL_OTHER_TYPES(DEFINE_STRUCT)
+#undef DEFINE_STRUCT
 
-struct Torch_NonValueTensorType : public PyConcreteType<Torch_NonValueTensorType> {
-  Torch_NonValueTensorType(PyMlirContextRef contextRef, MlirType t)
-      : PyConcreteType<Torch_NonValueTensorType>(std::move(contextRef), t) {}
-};
+#define DEFINE_STRUCT(TTT)                                                                                                      \
+  struct Torch_##TTT##Type : public PyConcreteType<Torch_##TTT##Type> {                                                         \
+    Torch_##TTT##Type(PyMlirContextRef contextRef, MlirType t) : PyConcreteType<Torch_##TTT##Type>(std::move(contextRef), t) {} \
+    static Torch_##TTT##Type createFromHandles(const py::handle optionalSizesHandle, const py::handle optionalDtypeHandle);                              \
+  };
+TORCH_MLIR_FORALL_TENSOR_TYPES(DEFINE_STRUCT)
+#undef DEFINE_STRUCT
 
 void bindTypes(py::module &m);
-void bindTypeHelpers(py::module &m);
+void bindTypeHelpers(py::module &typeHandle);

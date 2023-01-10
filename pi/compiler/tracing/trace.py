@@ -343,6 +343,9 @@ class MLIRTracer(pyc.BaseTracer):
         #     (), # defaults
         #     closure = tuple(types.CellType(None) for _ in range(len(frame.f_code.co_freevars)))
         # )
+
+        if frame.f_code.co_name == "__init__":
+            return False
         full_arg_spec = inspect.getfullargspec(
             frame.f_back.f_locals[frame.f_code.co_name]
         )

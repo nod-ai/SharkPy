@@ -77,7 +77,8 @@ class PrimListConstructOp:
         if len(elements):
             elements = get_op_results_or_values(elements)
             el_type = get_op_result_or_value(elements[0]).type
-            el_type_str = el_type_reg.findall(str(el_type))[0]
+            # TODO(max): add listof(type) helper
+            el_type_str = el_type_reg.findall(str(el_type))[0].replace(")", "")
             res_type = Type.parse(f"!torch.list<{el_type_str}>")
         else:
             res_type = Type.parse(f"!torch.list<int>")
